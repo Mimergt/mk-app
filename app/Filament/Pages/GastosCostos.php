@@ -1,0 +1,560 @@
+<?php
+
+namespace App\Filament\Pages;
+
+use Filament\Pages\Page;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Textarea;
+use Filament\Tables;
+use Filament\Tables\Table;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Actions\CreateAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Notifications\Notification;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
+use App\Models\Gasto;
+use App\Models\Combustible;
+use App\Models\GastoMensual;
+use App\Models\PrecioMensual;
+use App\Models\Gasolinera;
+
+class GastosCostos extends Page implements Forms\Contracts\HasForms, Tables\Contracts\HasTable
+{
+    use Forms\Concerns\InteractsWithForms;
+    use Tables\Concerns\InteractsWithTable;
+    
+    protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
+    
+    protected static ?string $navigationLabel = 'Finanzas (Legacy)';
+    
+    protected static ?string $title = 'Gestión de Gastos y Costos (Legacy)';
+    
+    protected static ?string $navigationGroup = 'Sistema';
+    
+    protected static ?int $navigationSort = 99;
+
+    protected static string $view = 'filament.pages.gastos-costos';
+    
+    protected static ?string $slug = 'finanzas-legacy';
+
+    protected static bool $shouldRegisterNavigation = false; // Ocultar de la navegación
+
+    // Datos para las tablas
+    public $activeTab = 'gastos';
+    
+    // Propiedades para los gastos del mes
+    public $mesSeleccionado = 8; // Agosto por defecto
+    public $gastos = [
+        'impuestos' => 0.00,
+        'servicios' => 0.00,
+        'planilla' => 0.00,
+        'renta' => 0.00,
+    ];
+    
+    // Gastos adicionales dinámicos
+    public $gastosAdicionales = [];
+    
+    // Propiedades para los precios del mes (solo compra editable)
+    public $precios = [
+        'super_compra' => 0.00,
+        'diesel_compra' => 0.00,
+        'regular_compra' => 0.00,
+    ];
+    
+    public function mount()
+    {
+        // Cargar gastos del mes seleccionado al inicializar
+        $this->cargarGastosMes();
+        // Cargar precios del mes seleccionado al inicializar
+        $this->cargarPreciosMes();
+    }
+    
+    protected function getViewData(): array
+    {
+        return [
+            'meses' => [
+                1 => 'Enero',
+                2 => 'Febrero', 
+                3 => 'Marzo',
+                4 => 'Abril',
+                5 => 'Mayo',
+                6 => 'Junio',
+                7 => 'Julio',
+                8 => 'Agosto',
+                9 => 'Septiembre',
+                10 => 'Octubre',
+                11 => 'Noviembre',
+                12 => 'Diciembre'
+            ]
+        ];
+    }
+    
+    public function table(Table $table): Table
+    {
+        if ($this->activeTab === 'gastos') {
+            return $this->gastosTable($table);
+        }
+        
+        return $this->preciosTable($table);
+    }
+    
+    protected function gastosTable(Table $table): Table
+    {
+        return $table
+            ->query(\App\Models\Gasto::query())
+            ->columns([
+                TextColumn::make('fecha')
+                    ->label('Fecha')
+                    ->date('d/m/Y')
+                    ->sortable(),
+                TextColumn::make('categoria')
+                    ->label('Categoría')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'operativo' => 'success',
+                        'mantenimiento' => 'warning',
+                        'administrativo' => 'info',
+                        'inventario' => 'gray',
+                        default => 'gray',
+                    }),
+                TextColumn::make('descripcion')
+                    ->label('Descripción')
+                    ->limit(50),
+                TextColumn::make('monto')
+                    ->label('Monto')
+                    ->money('GTQ')
+                    ->sortable(),
+                TextColumn::make('proveedor')
+                    ->label('Proveedor')
+                    ->searchable(),
+            ])
+            ->filters([
+                //
+            ])
+            ->headerActions([
+                Tables\Actions\CreateAction::make()
+                    ->label('Nuevo Gasto')
+                    ->form([
+                        Grid::make(2)
+                            ->schema([
+                                DatePicker::make('fecha')
+                                    ->label('Fecha')
+                                    ->required()
+                                    ->default(now()),
+                                Select::make('categoria')
+                                    ->label('Categoría')
+                                    ->required()
+                                    ->options([
+                                        'operativo' => 'Operativo',
+                                        'mantenimiento' => 'Mantenimiento',
+                                        'administrativo' => 'Administrativo',
+                                        'inventario' => 'Inventario',
+                                    ]),
+                                TextInput::make('monto')
+                                    ->label('Monto (Q)')
+                                    ->required()
+                                    ->numeric()
+                                    ->step(0.01)
+                                    ->prefix('Q'),
+                                TextInput::make('proveedor')
+                                    ->label('Proveedor')
+                                    ->maxLength(255),
+                            ]),
+                        Textarea::make('descripcion')
+                            ->label('Descripción')
+                            ->required()
+                            ->maxLength(500)
+                            ->rows(3),
+                    ])
+                    ->using(function (array $data): Model {
+                        return \App\Models\Gasto::create([
+                            'fecha' => $data['fecha'],
+                            'categoria' => $data['categoria'],
+                            'descripcion' => $data['descripcion'],
+                            'monto' => $data['monto'],
+                            'proveedor' => $data['proveedor'] ?? null,
+                            'gasolinera_id' => auth()->user()->gasolinera_id,
+                        ]);
+                    }),
+            ])
+            ->actions([
+                EditAction::make()
+                    ->form([
+                        Grid::make(2)
+                            ->schema([
+                                DatePicker::make('fecha')
+                                    ->label('Fecha')
+                                    ->required(),
+                                Select::make('categoria')
+                                    ->label('Categoría')
+                                    ->required()
+                                    ->options([
+                                        'operativo' => 'Operativo',
+                                        'mantenimiento' => 'Mantenimiento',
+                                        'administrativo' => 'Administrativo',
+                                        'inventario' => 'Inventario',
+                                    ]),
+                                TextInput::make('monto')
+                                    ->label('Monto (Q)')
+                                    ->required()
+                                    ->numeric()
+                                    ->step(0.01)
+                                    ->prefix('Q'),
+                                TextInput::make('proveedor')
+                                    ->label('Proveedor')
+                                    ->maxLength(255),
+                            ]),
+                        Textarea::make('descripcion')
+                            ->label('Descripción')
+                            ->required()
+                            ->maxLength(500)
+                            ->rows(3),
+                    ]),
+                DeleteAction::make(),
+            ]);
+    }
+    
+    protected function preciosTable(Table $table): Table
+    {
+        return $table
+            ->query(\App\Models\Combustible::query())
+            ->columns([
+                TextColumn::make('nombre')
+                    ->label('Combustible')
+                    ->searchable(),
+                TextColumn::make('precio_compra')
+                    ->label('Precio Compra')
+                    ->money('GTQ')
+                    ->sortable(),
+                TextColumn::make('precio_venta')
+                    ->label('Precio Venta')
+                    ->money('GTQ')
+                    ->sortable(),
+                TextColumn::make('margen_ganancia')
+                    ->label('Margen (%)')
+                    ->getStateUsing(function ($record) {
+                        if ($record->precio_compra > 0) {
+                            return round((($record->precio_venta - $record->precio_compra) / $record->precio_compra) * 100, 2) . '%';
+                        }
+                        return '0%';
+                    })
+                    ->color('success'),
+                TextColumn::make('updated_at')
+                    ->label('Actualizado')
+                    ->dateTime('d/m/Y H:i')
+                    ->sortable(),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                EditAction::make()
+                    ->form([
+                        Grid::make(2)
+                            ->schema([
+                                TextInput::make('precio_compra')
+                                    ->label('Precio de Compra (Q)')
+                                    ->required()
+                                    ->numeric()
+                                    ->step(0.01)
+                                    ->prefix('Q'),
+                                TextInput::make('precio_venta')
+                                    ->label('Precio de Venta (Q)')
+                                    ->required()
+                                    ->numeric()
+                                    ->step(0.01)
+                                    ->prefix('Q'),
+                            ]),
+                    ]),
+            ]);
+    }
+    
+    public function setActiveTab(string $tab): void
+    {
+        $this->activeTab = $tab;
+        $this->resetTable();
+    }
+    
+    public function seleccionarMes(int $mes): void
+    {
+        $this->mesSeleccionado = $mes;
+        $this->cargarGastosMes();
+        $this->cargarPreciosMes();
+    }
+    
+    public function cargarGastosMes(): void
+    {
+        // Obtener el año actual
+        $anioActual = now()->year;
+        
+        // Buscar gastos mensuales existentes para el año y mes seleccionado
+        $gastoMensual = GastoMensual::where('anio', $anioActual)
+            ->where('mes', $this->mesSeleccionado)
+            ->first();
+            
+        if ($gastoMensual) {
+            // Si existen gastos guardados, cargarlos
+            $this->gastos = [
+                'impuestos' => (float) $gastoMensual->impuestos,
+                'servicios' => (float) $gastoMensual->servicios,
+                'planilla' => (float) $gastoMensual->planilla,
+                'renta' => (float) $gastoMensual->renta,
+            ];
+            
+            // Cargar gastos adicionales si existen
+            if ($gastoMensual->gastos_adicionales) {
+                $this->gastosAdicionales = $gastoMensual->gastos_adicionales;
+            } else {
+                $this->gastosAdicionales = [];
+            }
+        } else {
+            // Si no existen gastos, inicializar con valores en cero
+            $this->gastos = [
+                'impuestos' => 0.00,
+                'servicios' => 0.00,
+                'planilla' => 0.00,
+                'renta' => 0.00,
+            ];
+            $this->gastosAdicionales = [];
+        }
+    }
+    
+    public function guardarGastosMes(): void
+    {
+        try {
+            // Validar que al menos un gasto tenga valor
+            $totalGastos = array_sum($this->gastos);
+            
+            if ($totalGastos == 0) {
+                Notification::make()
+                    ->title('Sin cambios')
+                    ->body('No hay gastos para guardar. Ingresa al menos un monto.')
+                    ->warning()
+                    ->send();
+                return;
+            }
+            
+            // Obtener nombres de los meses
+            $meses = [
+                1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+                5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+                9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+            ];
+            
+            // Obtener el año actual
+            $anioActual = now()->year;
+            
+            // Crear o actualizar el registro de gastos mensuales
+            $gastoMensual = GastoMensual::updateOrCreate(
+                [
+                    'anio' => $anioActual,
+                    'mes' => $this->mesSeleccionado,
+                ],
+                [
+                    'impuestos' => $this->gastos['impuestos'] ?? 0,
+                    'servicios' => $this->gastos['servicios'] ?? 0,
+                    'planilla' => $this->gastos['planilla'] ?? 0,
+                    'renta' => $this->gastos['renta'] ?? 0,
+                    'gastos_adicionales' => $this->gastosAdicionales
+                ]
+            );
+            
+            Notification::make()
+                ->title('Gastos Guardados')
+                ->body("Los gastos de {$meses[$this->mesSeleccionado]} han sido guardados exitosamente. Total: Q" . number_format($gastoMensual->total, 2))
+                ->success()
+                ->send();
+                
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Error')
+                ->body('Ocurrió un error al guardar los gastos: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function añadirGasto()
+    {
+        // Agregar un nuevo campo de gasto adicional
+        $this->gastosAdicionales[] = [
+            'id' => uniqid(),
+            'descripcion' => '',
+            'monto' => 0.00
+        ];
+        
+        Notification::make()
+            ->title('Gasto Adicional')
+            ->body('Se ha añadido un nuevo campo de gasto. Completa la descripción y el monto.')
+            ->success()
+            ->send();
+    }
+    
+    public function eliminarGastoAdicional($id)
+    {
+        $this->gastosAdicionales = array_filter($this->gastosAdicionales, function($gasto) use ($id) {
+            return $gasto['id'] !== $id;
+        });
+        
+        Notification::make()
+            ->title('Gasto Eliminado')
+            ->body('El gasto adicional ha sido eliminado.')
+            ->warning()
+            ->send();
+    }
+    
+    public function cargarPreciosMes(): void
+    {
+        // Obtener el año actual
+        $anioActual = now()->year;
+        
+        // Buscar precios mensuales existentes para el año y mes seleccionado
+        $precioMensual = PrecioMensual::where('anio', $anioActual)
+            ->where('mes', $this->mesSeleccionado)
+            ->first();
+            
+        if ($precioMensual) {
+            // Si existen precios guardados, cargarlos (solo compra)
+            $this->precios = [
+                'super_compra' => (float) $precioMensual->super_compra,
+                'diesel_compra' => (float) $precioMensual->diesel_compra,
+                'regular_compra' => (float) $precioMensual->regular_compra,
+            ];
+        } else {
+            // Si no existen precios, inicializar con valores en cero
+            $this->precios = [
+                'super_compra' => 0.00,
+                'diesel_compra' => 0.00,
+                'regular_compra' => 0.00,
+            ];
+        }
+    }
+    
+    public function guardarPreciosCompraMes(): void
+    {
+        try {
+            // Validar que al menos un precio tenga valor
+            $totalPrecios = array_sum($this->precios);
+            
+            if ($totalPrecios == 0) {
+                Notification::make()
+                    ->title('Sin cambios')
+                    ->body('No hay precios de compra para guardar. Ingresa al menos un precio.')
+                    ->warning()
+                    ->send();
+                return;
+            }
+            
+            // Obtener nombres de los meses
+            $meses = [
+                1 => 'Enero', 2 => 'Febrero', 3 => 'Marzo', 4 => 'Abril',
+                5 => 'Mayo', 6 => 'Junio', 7 => 'Julio', 8 => 'Agosto',
+                9 => 'Septiembre', 10 => 'Octubre', 11 => 'Noviembre', 12 => 'Diciembre'
+            ];
+            
+            // Obtener el año actual
+            $anioActual = now()->year;
+            
+            // Crear o actualizar el registro de precios mensuales (solo compra)
+            $precioMensual = PrecioMensual::updateOrCreate(
+                [
+                    'anio' => $anioActual,
+                    'mes' => $this->mesSeleccionado,
+                ],
+                [
+                    'super_compra' => $this->precios['super_compra'] ?? 0,
+                    'diesel_compra' => $this->precios['diesel_compra'] ?? 0,
+                    'regular_compra' => $this->precios['regular_compra'] ?? 0,
+                ]
+            );
+            
+            Notification::make()
+                ->title('Precios de Compra Guardados')
+                ->body("Los precios de compra de {$meses[$this->mesSeleccionado]} han sido guardados exitosamente.")
+                ->success()
+                ->send();
+                
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title('Error')
+                ->body('Ocurrió un error al guardar los precios de compra: ' . $e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+    
+    public function obtenerPromedioMensual(string $tipoCombustible): float
+    {
+        // Por ahora retornamos 0, más tarde conectaremos con los datos reales de ventas
+        // Este método calculará el promedio real de precios de venta del mes
+        
+        // TODO: Conectar con la tabla de ventas/movimientos para calcular promedio real
+        // Ejemplo de lógica futura:
+        // return DB::table('ventas_combustible')
+        //     ->where('combustible_tipo', $tipoCombustible)
+        //     ->whereYear('fecha', now()->year)
+        //     ->whereMonth('fecha', $this->mesSeleccionado)
+        //     ->avg('precio_venta') ?? 0.00;
+        
+        return 0.00;
+    }
+    
+    public function obtenerPromedioVenta(string $tipoCombustible): float
+    {
+        // Obtener todas las gasolineras activas con precios establecidos
+        $columnaPrecios = 'precio_' . strtolower($tipoCombustible);
+        
+        // Buscar gasolineras que tienen precios establecidos (> 0) y fecha de actualización
+        $query = Gasolinera::where($columnaPrecios, '>', 0);
+        
+        // Si queremos filtrar por mes específico, incluimos gasolineras actualizadas en este mes
+        if ($this->mesSeleccionado !== now()->format('n')) {
+            // Para meses pasados, buscamos gasolineras actualizadas en ese mes específico
+            $query->whereYear('fecha_actualizacion_precios', now()->year)
+                  ->whereMonth('fecha_actualizacion_precios', $this->mesSeleccionado);
+        }
+        
+        // Obtener el promedio de precios
+        $promedio = $query->avg($columnaPrecios);
+        
+        // Si no hay datos para el mes específico, obtener el promedio general de gasolineras activas
+        if (!$promedio && $this->mesSeleccionado !== now()->format('n')) {
+            $promedio = Gasolinera::where($columnaPrecios, '>', 0)->avg($columnaPrecios);
+        }
+        
+        return round($promedio ?? 0.00, 2);
+        
+        /* CÓDIGO ANTERIOR (simulado) - ya no es necesario:
+        $preciosSimulados = [
+            'super' => 22.50,   // Precio típico Super en Guatemala
+            'diesel' => 18.75,  // Precio típico Diesel en Guatemala  
+            'regular' => 20.25  // Precio típico Regular en Guatemala
+        ];
+        
+        // Agregar variación pequeña por mes para simular cambios
+        $variacion = ($this->mesSeleccionado * 0.15) - 1.2; // Variación de ±1.2
+        $precioBase = $preciosSimulados[strtolower($tipoCombustible)] ?? 20.00;
+        
+        return round($precioBase + $variacion, 2);
+        */
+        
+        /* CÓDIGO FUTURO PARA VENTAS DETALLADAS:
+         * Si más adelante implementas un sistema de ventas detallado por combustible:
+         
+        return DB::table('ventas_detalle') // o la tabla que uses para ventas
+            ->join('combustibles', 'ventas_detalle.combustible_id', '=', 'combustibles.id')
+            ->where('combustibles.nombre', 'like', '%' . $tipoCombustible . '%')
+            ->whereYear('ventas_detalle.created_at', now()->year)
+            ->whereMonth('ventas_detalle.created_at', $this->mesSeleccionado)
+            ->avg('ventas_detalle.precio_unitario') ?? 0.00;
+        */
+    }
+}
