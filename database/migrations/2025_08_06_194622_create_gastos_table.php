@@ -13,12 +13,6 @@ return new class extends Migration
     {
         Schema::create('gastos', function (Blueprint $table) {
             $table->id();
-            $table->date('fecha');
-            $table->enum('categoria', ['operativo', 'mantenimiento', 'administrativo', 'inventario']);
-            $table->text('descripcion');
-            $table->decimal('monto', 10, 2);
-            $table->string('proveedor')->nullable();
-            $table->foreignId('gasolinera_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -50,6 +50,7 @@ class GasolineraResource extends Resource
                             ->label('Precio CC (Q)')
                             ->helperText('Precio por galón del combustible CC')
                             ->visible(fn (Forms\Get $get): bool => $get('cc_activo'))
+                            ->default(0.00)
                             ->placeholder('0.00'),
                     ])
                     ->columns(2),
@@ -61,18 +62,21 @@ class GasolineraResource extends Resource
                             ->numeric()
                             ->step(0.01)
                             ->label('Precio Super (Q)')
+                            ->default(0.00)
                             ->placeholder('0.00'),
                             
                         Forms\Components\TextInput::make('precio_regular')
                             ->numeric()
                             ->step(0.01)
                             ->label('Precio Regular (Q)')
+                            ->default(0.00)
                             ->placeholder('0.00'),
                             
                         Forms\Components\TextInput::make('precio_diesel')
                             ->numeric()
                             ->step(0.01)
                             ->label('Precio Diesel (Q)')
+                            ->default(0.00)
                             ->placeholder('0.00'),
                     ])
                     ->columns(3),
