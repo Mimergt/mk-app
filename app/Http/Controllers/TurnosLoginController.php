@@ -112,13 +112,11 @@ class TurnosLoginController extends Controller
                     'updated_at' => $bomba->updated_at->format('d/m/Y H:i:s')
                 ];
                 
-                // Solo añadir CC si está activo en la gasolinera
-                if ($gasolinera->cc_activo) {
-                    $bombas[$bomba->nombre]['combustibles']['CC'] = [
-                        'galonaje' => $bomba->galonaje_cc,
-                        'precio' => $gasolinera->precio_cc,
-                    ];
-                }
+                // Agregar CC como lectura sin precio
+                $bombas[$bomba->nombre]['combustibles']['CC'] = [
+                    'galonaje' => $bomba->galonaje_cc,
+                    'precio' => null, // CC sin precio
+                ];
             }
             
             // Inicializar lecturas vacías

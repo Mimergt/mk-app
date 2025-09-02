@@ -12,3 +12,36 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Personalización para hacer la barra lateral más pequeña */
+.fi-sidebar {
+    width: 200px !important; /* Ancho reducido de la barra lateral (por defecto ~280px) */
+}
+
+.fi-sidebar-nav {
+    width: 200px !important;
+}
+
+.fi-sidebar-content {
+    width: 200px !important;
+}
+
+/* Ajustar el contenido principal para que use más espacio */
+.fi-main {
+    margin-left: 200px !important; /* Debe coincidir con el ancho de la barra lateral */
+}
+
+.fi-main-content {
+    max-width: none !important; /* Remover limitación de ancho máximo */
+}
+
+/* Para pantallas más pequeñas, mantener comportamiento responsive */
+@media (max-width: 1024px) {
+    .fi-sidebar {
+        width: 280px !important; /* Mantener tamaño normal en pantallas pequeñas */
+    }
+    
+    .fi-main {
+        margin-left: 0 !important; /* En móvil no hay margen */
+    }
+}

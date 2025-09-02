@@ -35,28 +35,8 @@ class GasolineraResource extends Resource
                     ->maxLength(255)
                     ->label('Ubicación'),
                     
-                Forms\Components\Section::make('Configuración de Combustibles')
-                    ->description('Configuración de tipos de combustible disponibles')
-                    ->schema([
-                        Forms\Components\Toggle::make('cc_activo')
-                            ->label('Combustible CC Activo')
-                            ->helperText('Activar o desactivar el manejo de combustible CC en esta gasolinera')
-                            ->default(true)
-                            ->inline(false),
-                            
-                        Forms\Components\TextInput::make('precio_cc')
-                            ->numeric()
-                            ->step(0.01)
-                            ->label('Precio CC (Q)')
-                            ->helperText('Precio por galón del combustible CC')
-                            ->visible(fn (Forms\Get $get): bool => $get('cc_activo'))
-                            ->default(0.00)
-                            ->placeholder('0.00'),
-                    ])
-                    ->columns(2),
-                    
                 Forms\Components\Section::make('Precios de Combustibles')
-                    ->description('Configuración de precios por galón')
+                    ->description('Configuración de precios por galón (CC no maneja precio, solo lectura)')
                     ->schema([
                         Forms\Components\TextInput::make('precio_super')
                             ->numeric()
@@ -93,10 +73,6 @@ class GasolineraResource extends Resource
                 Tables\Columns\TextColumn::make('ubicacion')
                     ->searchable()
                     ->label('Ubicación'),
-                Tables\Columns\IconColumn::make('cc_activo')
-                    ->boolean()
-                    ->label('CC Activo')
-                    ->tooltip('Combustible CC disponible'),
                 Tables\Columns\TextColumn::make('precio_super')
                     ->money('GTQ')
                     ->label('Precio Super')
@@ -109,11 +85,6 @@ class GasolineraResource extends Resource
                     ->money('GTQ')
                     ->label('Precio Diesel')
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('precio_cc')
-                    ->money('GTQ')
-                    ->label('Precio CC')
-                    ->toggleable()
-                    ->visible(fn ($record): bool => $record->cc_activo ?? false),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -126,11 +97,7 @@ class GasolineraResource extends Resource
                     ->label('Actualizado'),
             ])
             ->filters([
-                Tables\Filters\TernaryFilter::make('cc_activo')
-                    ->label('CC Activo')
-                    ->placeholder('Todos')
-                    ->trueLabel('Con CC')
-                    ->falseLabel('Sin CC'),
+                // Filtros pueden agregarse aquí en el futuro
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

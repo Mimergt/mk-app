@@ -19,12 +19,12 @@
 ### 1️⃣ Extraer el código fuente:
 ```bash
 cd /var/www/html
-tar -xzf my-laravel-app/backups/v1/laravel-app-v1-source.tar.gz -C my-laravel-app-v1-restored/
+tar -xzf mk-app/backups/v1/laravel-app-v1-source.tar.gz -C mk-app-v1-restored/
 ```
 
 ### 2️⃣ Restaurar base de datos:
 ```bash
-cd my-laravel-app-v1-restored
+cd mk-app-v1-restored
 cp backups/v1/database-v1.sqlite database/database.sqlite
 ```
 
@@ -72,8 +72,8 @@ php artisan serve
 ### Si prefieres usar Git:
 ```bash
 # Clonar desde el commit específico
-git clone /path/to/repo my-laravel-app-v1
-cd my-laravel-app-v1
+git clone /path/to/repo mk-app-v1
+cd mk-app-v1
 git checkout v1.0
 
 # Instalar y configurar

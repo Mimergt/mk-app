@@ -150,7 +150,7 @@
                     </div>
                 @endif
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {{-- Super --}}
                     <div class="bg-green-50 dark:bg-green-900/20 border-2 border-green-200 dark:border-green-600 rounded-lg p-4">
                         <div class="flex items-center mb-3">
@@ -204,38 +204,6 @@
                                    placeholder="0.00">
                         </div>
                     </div>
-
-                    {{-- CC --}}
-                    @if($gasolineraActual->cc_activo)
-                        <div class="bg-purple-50 dark:bg-purple-900/20 border-2 border-purple-200 dark:border-purple-600 rounded-lg p-4">
-                            <div class="flex items-center mb-3">
-                                <span class="w-4 h-4 bg-purple-500 rounded-full mr-2"></span>
-                                <h3 class="font-bold text-purple-800 dark:text-purple-300">CC</h3>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                    Precio por galón (Q):
-                                </label>
-                                <input type="number" 
-                                       step="0.01"
-                                       wire:model="preciosData.precio_cc"
-                                       class="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-purple-300 dark:border-purple-600 rounded-md text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                                       placeholder="0.00">
-                            </div>
-                        </div>
-                    @else
-                        <div class="bg-gray-50 dark:bg-gray-900/20 border-2 border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                            <div class="flex items-center justify-center h-full">
-                                <div class="text-center">
-                                    <svg class="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L5.636 5.636"></path>
-                                    </svg>
-                                    <p class="text-sm text-gray-600 dark:text-gray-400 font-medium">CC Deshabilitado</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-500">Activar en configuración</p>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
                 </div>
                 
                 <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-600 rounded-lg">
@@ -303,7 +271,6 @@
                                 {{-- Combustibles --}}
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     @foreach($bomba['combustibles'] as $tipoCombustible => $combustible)
-                                        @if($tipoCombustible !== 'cc' || $gasolineraActual->cc_activo)
                                             <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-3
                                                 {{ $tipoCombustible === 'super' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-600' : 
                                                    ($tipoCombustible === 'regular' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-600' : 
@@ -318,12 +285,20 @@
                                                         </span>
                                                         {{ $combustible['tipo'] }}
                                                     </h4>
-                                                    <p class="text-xs text-gray-600 dark:text-gray-400">Precio: Q{{ number_format($combustible['precio'], 2) }}</p>
+                                                    @if($tipoCombustible !== 'cc')
+                                                        <p class="text-xs text-gray-600 dark:text-gray-400">Precio: Q{{ number_format($combustible['precio'], 2) }}</p>
+                                                    @else
+                                                        <p class="text-xs text-purple-600 dark:text-purple-400">Solo lectura</p>
+                                                    @endif
                                                 </div>
                                                 
                                                 <div>
                                                     <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
-                                                        Galonaje:
+                                                        @if($tipoCombustible !== 'cc')
+                                                            Galonaje:
+                                                        @else
+                                                            Lectura:
+                                                        @endif
                                                     </label>
                                                     <input type="number" 
                                                            step="0.01"
@@ -332,7 +307,6 @@
                                                            placeholder="0.00">
                                                 </div>
                                             </div>
-                                        @endif
                                     @endforeach
                                 </div>
 

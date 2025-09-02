@@ -12,8 +12,6 @@ class Gasolinera extends Model
         'precio_super',
         'precio_regular', 
         'precio_diesel',
-        'precio_cc',
-        'cc_activo',
         'fecha_actualizacion_precios'
     ];
 
@@ -21,8 +19,6 @@ class Gasolinera extends Model
         'precio_super' => 'decimal:2',
         'precio_regular' => 'decimal:2',
         'precio_diesel' => 'decimal:2',
-        'precio_cc' => 'decimal:2',
-        'cc_activo' => 'boolean',
         'fecha_actualizacion_precios' => 'datetime',
     ];
 
@@ -59,7 +55,7 @@ class Gasolinera extends Model
     
     public function getPrecioCC()
     {
-        return $this->precio_cc;
+        return null; // CC ya no maneja precio
     }
 
     // Método para obtener precio por tipo de combustible
@@ -69,7 +65,7 @@ class Gasolinera extends Model
             'super' => $this->precio_super,
             'regular' => $this->precio_regular,
             'diesel' => $this->precio_diesel,
-            'cc' => $this->precio_cc,
+            'cc' => null, // CC sin precio
             default => 0.00
         };
     }
