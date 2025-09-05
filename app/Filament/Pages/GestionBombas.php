@@ -15,7 +15,7 @@ class GestionBombas extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
     
-    protected static ?string $navigationLabel = 'Gestión de Bombas';
+    protected static ?string $navigationLabel = 'Bombas';
     
     protected static ?string $title = 'Gestión de Bombas por Gasolinera';
 

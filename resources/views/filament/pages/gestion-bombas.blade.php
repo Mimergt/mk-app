@@ -11,7 +11,7 @@
                                  class="bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/40 border-2 border-blue-200 dark:border-blue-600 hover:border-blue-400 dark:hover:border-blue-500 rounded-lg p-4 cursor-pointer transition-all duration-200">
                                 <div class="text-center">
                                     <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-4 0H7m-2 0h2m0 0V9a2 2 0 012-2h6a2 2 0 012 2v12M9 7h6m-6 4h6m-6 4h6m-6 4h6"></path>
                                         </svg>
                                     </div>
@@ -35,14 +35,14 @@
             {{-- Vista de gestión de bombas --}}
             <div class="rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
                 {{-- Header con información de la gasolinera --}}
-                <div class="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-t-xl">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-t-xl">
                     <div class="flex justify-between items-center">
                         <div>
                             <h1 class="text-2xl font-bold">{{ $gasolineraActual->nombre }}</h1>
                             <p class="text-blue-100 mt-1">{{ $gasolineraActual->ubicacion ?? 'Sin ubicación especificada' }}</p>
                         </div>
                         <button wire:click="$set('selectedGasolinera', null)" 
-                                class="bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center">
+                                class="bg-blue-500 hover:bg-blue-400 dark:text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                             </svg>
@@ -51,77 +51,16 @@
                     </div>
                 </div>
 
-                {{-- Resumen en una sola fila --}}
-                <div class="p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800">
-                    <div class="flex flex-wrap items-center justify-between gap-4 text-center">
-                        <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-600 dark:text-gray-400">Bombas Activas</p>
-                                <p class="text-lg font-bold text-gray-900 dark:text-white">{{ $totalBombasActivas }}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-600 dark:text-gray-400">Total Bombas</p>
-                                <p class="text-lg font-bold text-gray-900 dark:text-white">{{ count($bombas) }}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-600 dark:text-gray-400">Ventas Hoy</p>
-                                <p class="text-lg font-bold text-gray-900 dark:text-white">Q{{ number_format($ventasHoy, 2) }}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="flex items-center space-x-2">
-                            <div class="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
-                                </svg>
-                            </div>
-                            <div>
-                                <p class="text-xs text-gray-600 dark:text-gray-400">Última Actualización</p>
-                                <p class="text-sm font-bold text-gray-900 dark:text-white">
-                                    @if($gasolineraActual->fecha_actualizacion_precios)
-                                        {{ \Carbon\Carbon::parse($gasolineraActual->fecha_actualizacion_precios)->format('d/m H:i') }}
-                                    @else
-                                        No actualizado
-                                    @endif
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                
             </div>
 
             {{-- Gestión de precios --}}
             <div class="rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-6">
-                <div class="flex justify-between items-center mb-6">
+                <div class="flex justify-between items-center pb-6 border-b border-gray-200 dark:border-gray-700">
                     <h2 class="text-xl font-bold text-gray-900 dark:text-white">Gestión de Precios</h2>
-                    <button wire:click="actualizarPrecios" 
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center">
-                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-                        </svg>
+                    <x-filament::button wire:click="actualizarPrecios" icon="heroicon-o-arrow-path" color="primary" class="font-medium">
                         Actualizar Precios
-                    </button>
+                    </x-filament::button>
                 </div>
 
                 @if($mensajeExito)
@@ -222,7 +161,7 @@
                     @foreach($bombas as $bomba)
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                             {{-- Header de la bomba --}}
-                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4">
+                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 dark:text-white p-4">
                                 <div class="flex items-center justify-between">
                                     <div class="flex items-center">
                                         <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center mr-3">
@@ -245,7 +184,7 @@
                                     <div class="flex space-x-2">
                                         <button wire:click="eliminarBomba({{ $bomba['id'] }})" 
                                                 onclick="return confirm('¿Estás seguro de eliminar {{ $bomba['nombre'] }}?')"
-                                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg text-sm font-bold transition-all duration-200 inline-flex items-center">
+                                                class="bg-red-500 hover:bg-red-600 dark:text-white px-3 py-1 rounded-lg text-sm font-bold transition-all duration-200 inline-flex items-center">
                                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H9a1 1 0 00-1 1v1M4 7h16"></path>
                                             </svg>
@@ -323,7 +262,7 @@
                                 {{-- Botón de guardar individual por bomba --}}
                                 <div class="mt-4 text-center">
                                     <button wire:click="guardarBomba({{ $bomba['id'] }})" 
-                                            class="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold transition-all duration-200 inline-flex items-center">
+                                            class="bg-green-600 hover:bg-green-700 dark:text-white px-6 py-2 rounded-lg font-bold transition-all duration-200 inline-flex items-center">
                                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                         </svg>
@@ -338,7 +277,7 @@
                 {{-- Botón para añadir nueva bomba --}}
                 <div class="mt-6 text-center">
                     <button wire:click="agregarNuevaBomba" 
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-lg font-bold text-lg transition-all duration-200 inline-flex items-center">
+                            class="bg-blue-600 hover:bg-blue-700 dark:text-white px-8 py-3 rounded-lg font-bold text-lg transition-all duration-200 inline-flex items-center">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>
@@ -354,7 +293,7 @@
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">No hay bombas registradas</h3>
                     <p class="text-gray-600 dark:text-gray-400 mb-4">Esta gasolinera no tiene bombas configuradas.</p>
                     <button wire:click="crearBombasIniciales" 
-                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors inline-flex items-center">
+                            class="bg-blue-600 hover:bg-blue-700 dark:text-white px-6 py-2 rounded-lg font-medium transition-colors inline-flex items-center">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                         </svg>

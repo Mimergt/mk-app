@@ -60,6 +60,14 @@ class GasolineraResource extends Resource
                             ->placeholder('0.00'),
                     ])
                     ->columns(3),
+                    
+                Forms\Components\Section::make('Información CC')
+                    ->description('Centro de Cargas (CC) disponible en todas las bombas - Solo lectura, sin precio')
+                    ->schema([
+                        Forms\Components\Placeholder::make('cc_info')
+                            ->label('')
+                            ->content('ℹ️ CC está habilitado automáticamente en todas las bombas de esta gasolinera como una lectura adicional sin precio.')
+                    ])
             ]);
     }
 
@@ -85,6 +93,12 @@ class GasolineraResource extends Resource
                     ->money('GTQ')
                     ->label('Precio Diesel')
                     ->toggleable(),
+                Tables\Columns\IconColumn::make('cc_disponible')
+                    ->label('CC Disponible')
+                    ->icon('heroicon-o-check-circle')
+                    ->color('success')
+                    ->tooltip('Centro de Cargas disponible en todas las bombas')
+                    ->state(fn ($record): bool => true), // Siempre true ahora
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
