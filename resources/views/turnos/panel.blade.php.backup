@@ -264,7 +264,7 @@
                                                                     <span class="text-xs text-white/60 ml-1">gal</span>
                                                                 </div>
                                                                 <div class="text-xs text-white/50 mt-1 text-center">
-                                                                    {{ $bombaData['updated_at'] ?? 'No disponible' }}
+                                                                    {{ \Carbon\Carbon::parse($bombaData['updated_at'])->format('d/m/Y H:i') }}
                                                                 </div>
                                                             </div>
                                                             

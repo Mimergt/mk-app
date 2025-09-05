@@ -109,7 +109,7 @@ class TurnosLoginController extends Controller
                             'precio' => $gasolinera->precio_diesel,
                         ]
                     ],
-                    'updated_at' => $bomba->updated_at->format('d/m/Y H:i')
+                    'updated_at' => $bomba->updated_at->format('d/m/Y H:i:s')
                 ];
                 
                 // Agregar CC como lectura sin precio
@@ -139,7 +139,7 @@ class TurnosLoginController extends Controller
                                        ->first();
                                        
         $ultimaActualizacionEfectivo = $ultimoTurno ? 
-            $ultimoTurno->updated_at->format('d/m/Y H:i') : null;
+            $ultimoTurno->updated_at->format('d/m/Y H:i:s') : null;
         
         return view('turnos.panel', compact(
             'gasolineraUsuario',
