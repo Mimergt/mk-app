@@ -1,0 +1,39 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fondo con gradiente -->
+  <rect width="512" height="512" rx="80" fill="url(#gradient)"/>
+  
+  <!-- Gradiente -->
+  <defs>
+    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1f2937;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#374151;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Bomba de gasolina (icono principal) -->
+  <g transform="translate(128, 100)">
+    <!-- Base de la bomba -->
+    <rect x="40" y="100" width="120" height="200" rx="15" fill="#10b981" stroke="#059669" stroke-width="4"/>
+    
+    <!-- Pantalla -->
+    <rect x="55" y="130" width="90" height="60" rx="8" fill="#111827"/>
+    <rect x="65" y="140" width="70" height="40" rx="4" fill="#22c55e"/>
+    
+    <!-- Números en pantalla -->
+    <text x="100" y="165" text-anchor="middle" fill="#000" font-family="monospace" font-size="20" font-weight="bold">MK</text>
+    
+    <!-- Manguera -->
+    <path d="M 160 180 Q 200 180 220 200 Q 240 220 240 250" stroke="#374151" stroke-width="12" fill="none" stroke-linecap="round"/>
+    
+    <!-- Pistola -->
+    <ellipse cx="240" cy="250" rx="15" ry="25" fill="#6b7280"/>
+    <rect x="230" y="235" width="20" height="15" rx="3" fill="#9ca3af"/>
+    
+    <!-- Indicador de combustible -->
+    <circle cx="100" cy="250" r="12" fill="#fbbf24"/>
+    <text x="100" y="256" text-anchor="middle" fill="#000" font-family="Arial" font-size="14" font-weight="bold">⛽</text>
+  </g>
+  
+  <!-- Texto MK en la parte inferior -->
+  <text x="256" y="450" text-anchor="middle" fill="#e5e7eb" font-family="Arial, sans-serif" font-size="48" font-weight="bold">MK</text>
+</svg>
