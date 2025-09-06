@@ -340,6 +340,49 @@
                                                     </div>
                                                 </div>
                                             </div>
+
+                                            <!-- Modal para imagen completa - Dentro del contexto de Alpine.js -->
+                                            <div x-show="modalOpen" 
+                                                 x-transition:enter="transition ease-out duration-300"
+                                                 x-transition:enter-start="opacity-0"
+                                                 x-transition:enter-end="opacity-100"
+                                                 x-transition:leave="transition ease-in duration-200"
+                                                 x-transition:leave-start="opacity-100"
+                                                 x-transition:leave-end="opacity-0"
+                                                 @click.self="closeModal()"
+                                                 @keydown.escape.window="closeModal()"
+                                                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+                                                <div class="relative max-w-4xl max-h-full p-4">
+                                                    <div class="relative bg-white rounded-lg shadow-2xl overflow-hidden">
+                                                        <!-- Header del modal -->
+                                                        <div class="flex items-center justify-between p-4 bg-gray-100 border-b">
+                                                            <h3 class="text-lg font-semibold text-gray-800">
+                                                                📸 Fotografía de {{ $nombreBomba }}
+                                                            </h3>
+                                                            <button type="button" @click="closeModal()" 
+                                                                    class="text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full p-2 transition-all duration-200">
+                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                        
+                                                        <!-- Imagen completa -->
+                                                        <div class="p-4 bg-gray-50">
+                                                            <img :src="previewUrl" :alt="'Fotografía completa de {{ $nombreBomba }}'" 
+                                                                 class="w-full max-h-[70vh] object-contain rounded-lg shadow-lg">
+                                                        </div>
+                                                        
+                                                        <!-- Footer simple -->
+                                                        <div class="flex items-center justify-center p-4 bg-gray-100 border-t">
+                                                            <button type="button" @click="closeModal()" 
+                                                                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg text-sm transition-all duration-200">
+                                                                Cerrar
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                         
                                         <!-- Botón Guardar al final -->
@@ -353,49 +396,6 @@
                                 </div>
 
                                 <!-- Modal para imagen completa - FUERA DEL DIV DE LA BOMBA -->
-                            </div>
-
-                            <!-- Modal para imagen completa - Movido fuera del contenedor de bomba -->
-                            <div x-show="modalOpen" 
-                                 x-transition:enter="transition ease-out duration-300"
-                                 x-transition:enter-start="opacity-0"
-                                 x-transition:enter-end="opacity-100"
-                                 x-transition:leave="transition ease-in duration-200"
-                                 x-transition:leave-start="opacity-100"
-                                 x-transition:leave-end="opacity-0"
-                                 @click.self="closeModal()"
-                                 @keydown.escape.window="closeModal()"
-                                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-                                <div class="relative max-w-4xl max-h-full p-4">
-                                    <div class="relative bg-white rounded-lg shadow-2xl overflow-hidden">
-                                        <!-- Header del modal -->
-                                        <div class="flex items-center justify-between p-4 bg-gray-100 border-b">
-                                            <h3 class="text-lg font-semibold text-gray-800">
-                                                📸 Fotografía de {{ $nombreBomba }}
-                                            </h3>
-                                            <button type="button" @click="closeModal()" 
-                                                    class="text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full p-2 transition-all duration-200">
-                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                </svg>
-                                            </button>
-                                        </div>
-                                        
-                                        <!-- Imagen completa -->
-                                        <div class="p-4 bg-gray-50">
-                                            <img :src="previewUrl" :alt="'Fotografía completa de {{ $nombreBomba }}'" 
-                                                 class="w-full max-h-[70vh] object-contain rounded-lg shadow-lg">
-                                        </div>
-                                        
-                                        <!-- Footer simple -->
-                                        <div class="flex items-center justify-center p-4 bg-gray-100 border-t">
-                                            <button type="button" @click="closeModal()" 
-                                                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg text-sm transition-all duration-200">
-                                                Cerrar
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
                             </div>
                         @endforeach
                     </div>
@@ -500,23 +500,29 @@
                 resetPhoto() {
                     this.previewUrl = this.originalUrl;
                     this.showPreview = this.originalUrl !== '';
-                    document.querySelector('input[name="fotografia_bomba"]').value = '';
+                    // Buscar el input dentro del contexto actual
+                    const input = this.$el.querySelector('input[name="fotografia_bomba"]');
+                    if (input) input.value = '';
                 },
                 
                 removePhoto() {
                     this.previewUrl = '';
                     this.showPreview = false;
                     this.modalOpen = false;
-                    document.querySelector('input[name="fotografia_bomba"]').value = '';
+                    // Buscar el input dentro del contexto actual
+                    const input = this.$el.querySelector('input[name="fotografia_bomba"]');
+                    if (input) input.value = '';
                 },
                 
                 openModal() {
+                    console.log('openModal called, previewUrl:', this.previewUrl);
                     this.modalOpen = true;
                     // Prevenir scroll del body cuando el modal está abierto
                     document.body.style.overflow = 'hidden';
                 },
                 
                 closeModal() {
+                    console.log('closeModal called');
                     this.modalOpen = false;
                     // Restaurar scroll del body
                     document.body.style.overflow = '';
