@@ -203,8 +203,7 @@
                                      x-cloak
                                      class="border-t border-white/20 bg-white/5"
                                      style="display: none;">
-                                    <form action="{{ route('turnos.bomba.guardar-grupo', $nombreBomba) }}" method="POST" enctype="multipart/form-data" class="p-3"
-                                          @submit="console.log('Form submitting...'); console.log('File input:', document.getElementById('file-input-{{ $nombreBomba }}').files);">
+                                    <form action="{{ route('turnos.bomba.guardar-grupo', $nombreBomba) }}" method="POST" enctype="multipart/form-data" class="p-3">
                                         @csrf
                                         
                                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-4">
@@ -293,10 +292,19 @@
                                                            @change="handleFileChange($event)"
                                                            class="w-full px-3 py-3 bg-yellow-400/20 border-2 border-yellow-400/70 text-yellow-100 rounded-lg font-bold focus:outline-none focus:ring-4 focus:ring-yellow-400/50 focus:border-yellow-300 hover:bg-yellow-400/30 transition-all duration-200"
                                                            :required="!showPreview"
+                                                           :disabled="processing"
                                                            id="file-input-{{ $nombreBomba }}">
+                                                    
+                                                    <!-- Indicador de procesamiento -->
+                                                    <div x-show="processing" class="text-center py-2">
+                                                        <div class="text-yellow-300 text-sm">
+                                                            🔄 Comprimiendo imagen... Por favor espere
+                                                        </div>
+                                                    </div>
+                                                    
                                                     <p class="text-xs text-yellow-200/70 text-center">
                                                         📱 Toma una foto clara de la bomba antes de guardar los valores<br>
-                                                        <span class="text-yellow-300/60">Máximo 10MB por fotografía</span>
+                                                        <span class="text-yellow-300/60">Las imágenes se comprimen automáticamente a 1280px para optimizar el almacenamiento</span>
                                                     </p>
                                                     
                                                     <!-- Botones de control -->
@@ -398,8 +406,10 @@
                                         <!-- Botón Guardar al final -->
                                         <div class="mt-4 text-center">
                                             <button type="submit" 
-                                                    class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all duration-200 transform hover:scale-105 w-full shadow-lg">
+                                                    :disabled="processing"
+                                                    class="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl text-sm font-bold transition-all duration-200 transform hover:scale-105 w-full shadow-lg">
                                                 💾 Guardar {{ $nombreBomba }}
+                                                <span x-show="processing" class="ml-2">🔄</span>
                                             </button>
                                         </div>
                                     </form>
@@ -486,6 +496,7 @@
                 originalUrl: '',
                 showPreview: false,
                 modalOpen: false,
+                processing: false,
                 
                 initFotografia(fotoUrl, tieneFoto) {
                     console.log('initFotografia called:', { fotoUrl, tieneFoto });
@@ -504,21 +515,15 @@
                     console.log('File:', file);
                     
                     if (file) {
-                        console.log('File details:');
-                        console.log('- Name:', file.name);
-                        console.log('- Size:', file.size);
-                        console.log('- Type:', file.type);
-                        console.log('- Last modified:', file.lastModified);
+                        console.log('Archivo original:');
+                        console.log('- Nombre:', file.name);
+                        console.log('- Tamaño:', file.size, 'bytes (', Math.round(file.size / 1024 / 1024 * 100) / 100, 'MB)');
+                        console.log('- Tipo:', file.type);
+                        console.log('- Última modificación:', file.lastModified);
                         
                         // Validaciones básicas en frontend
                         if (file.size === 0) {
                             alert('El archivo está vacío. Por favor seleccione una fotografía válida.');
-                            event.target.value = '';
-                            return;
-                        }
-                        
-                        if (file.size > 10 * 1024 * 1024) { // 10MB
-                            alert('El archivo es demasiado grande (' + Math.round(file.size / 1024 / 1024 * 100) / 100 + 'MB). Máximo 10MB.');
                             event.target.value = '';
                             return;
                         }
@@ -530,30 +535,45 @@
                             return;
                         }
                         
-                        console.log('File validation passed, creating preview...');
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            this.previewUrl = e.target.result;
-                            this.showPreview = true;
-                            console.log('Preview URL set, length:', this.previewUrl.length);
-                        };
-                        reader.onerror = (e) => {
-                            console.error('FileReader error:', e);
-                        };
-                        reader.readAsDataURL(file);
+                        // Comprimir la imagen antes de procesar
+                        this.processing = true;
+                        this.compressImage(file, (compressedFile) => {
+                            console.log('Archivo comprimido:');
+                            console.log('- Tamaño:', compressedFile.size, 'bytes (', Math.round(compressedFile.size / 1024 / 1024 * 100) / 100, 'MB)');
+                            console.log('- Reducción:', Math.round((1 - compressedFile.size / file.size) * 100), '%');
+                            
+                            // Actualizar el input con el archivo comprimido
+                            const dataTransfer = new DataTransfer();
+                            dataTransfer.items.add(compressedFile);
+                            event.target.files = dataTransfer.files;
+                            
+                            // Crear preview
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
+                                this.previewUrl = e.target.result;
+                                this.showPreview = true;
+                                this.processing = false;
+                                console.log('Preview creado exitosamente');
+                            };
+                            reader.onerror = (e) => {
+                                console.error('Error en FileReader:', e);
+                                this.processing = false;
+                            };
+                            reader.readAsDataURL(compressedFile);
+                        });
                     } else {
-                        console.log('No file selected');
+                        console.log('No se seleccionó archivo');
                     }
                 },
                 
                 resetPhoto() {
                     this.previewUrl = this.originalUrl;
                     this.showPreview = this.originalUrl !== '';
-                    // Buscar el input dentro del contexto actual usando el ID específico
-                    const input = document.getElementById('file-input-{{ $nombreBomba }}');
+                    // Buscar el input dentro del contexto actual
+                    const input = this.$el.querySelector('input[name="fotografia_bomba"]');
                     if (input) {
                         input.value = '';
-                        console.log('Reset photo for {{ $nombreBomba }}');
+                        console.log('Reset photo');
                     }
                 },
                 
@@ -561,11 +581,11 @@
                     this.previewUrl = '';
                     this.showPreview = false;
                     this.modalOpen = false;
-                    // Buscar el input dentro del contexto actual usando el ID específico
-                    const input = document.getElementById('file-input-{{ $nombreBomba }}');
+                    // Buscar el input dentro del contexto actual
+                    const input = this.$el.querySelector('input[name="fotografia_bomba"]');
                     if (input) {
                         input.value = '';
-                        console.log('Removed photo for {{ $nombreBomba }}');
+                        console.log('Removed photo');
                     }
                 },
                 
@@ -577,6 +597,68 @@
                 closeModal() {
                     console.log('closeModal called');
                     this.modalOpen = false;
+                },
+                
+                compressImage(file, callback) {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    const img = new Image();
+                    
+                    img.onload = () => {
+                        // Calcular nuevas dimensiones manteniendo la proporción
+                        const maxWidth = 1280;
+                        const maxHeight = 1280;
+                        let { width, height } = img;
+                        
+                        console.log('Dimensiones originales:', width, 'x', height);
+                        
+                        // Solo redimensionar si la imagen es más grande que el máximo
+                        if (width > maxWidth || height > maxHeight) {
+                            // Calcular la escala para mantener la proporción
+                            if (width > height) {
+                                if (width > maxWidth) {
+                                    height = height * (maxWidth / width);
+                                    width = maxWidth;
+                                }
+                            } else {
+                                if (height > maxHeight) {
+                                    width = width * (maxHeight / height);
+                                    height = maxHeight;
+                                }
+                            }
+                        }
+                        
+                        console.log('Nuevas dimensiones:', Math.round(width), 'x', Math.round(height));
+                        
+                        // Configurar canvas con dimensiones enteras
+                        canvas.width = Math.round(width);
+                        canvas.height = Math.round(height);
+                        
+                        // Dibujar imagen redimensionada con alta calidad para preservar texto
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
+                        ctx.drawImage(img, 0, 0, Math.round(width), Math.round(height));
+                        
+                        // Convertir a Blob con compresión optimizada para texto
+                        canvas.toBlob((blob) => {
+                            // Crear nuevo archivo con el blob comprimido
+                            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.jpg'), {
+                                type: 'image/jpeg',
+                                lastModified: Date.now()
+                            });
+                            
+                            callback(compressedFile);
+                        }, 'image/jpeg', 0.90); // 90% de calidad para preservar texto legible
+                    };
+                    
+                    img.onerror = () => {
+                        console.error('Error al cargar la imagen para compresión');
+                        this.processing = false;
+                        alert('Error al procesar la imagen. Intente con otra fotografía.');
+                    };
+                    
+                    // Cargar la imagen
+                    img.src = URL.createObjectURL(file);
                 }
             }
         }
