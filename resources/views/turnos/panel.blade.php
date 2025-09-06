@@ -203,7 +203,8 @@
                                      x-cloak
                                      class="border-t border-white/20 bg-white/5"
                                      style="display: none;">
-                                    <form action="{{ route('turnos.bomba.guardar-grupo', $nombreBomba) }}" method="POST" enctype="multipart/form-data" class="p-3">
+                                    <form action="{{ route('turnos.bomba.guardar-grupo', $nombreBomba) }}" method="POST" enctype="multipart/form-data" class="p-3"
+                                          @submit="console.log('Form submitting...'); console.log('File input:', document.getElementById('file-input-{{ $nombreBomba }}').files);">
                                         @csrf
                                         
                                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-4">
@@ -291,9 +292,11 @@
                                                     <input type="file" name="fotografia_bomba" accept="image/*" capture="environment" 
                                                            @change="handleFileChange($event)"
                                                            class="w-full px-3 py-3 bg-yellow-400/20 border-2 border-yellow-400/70 text-yellow-100 rounded-lg font-bold focus:outline-none focus:ring-4 focus:ring-yellow-400/50 focus:border-yellow-300 hover:bg-yellow-400/30 transition-all duration-200"
-                                                           :required="!showPreview">
+                                                           :required="!showPreview"
+                                                           id="file-input-{{ $nombreBomba }}">
                                                     <p class="text-xs text-yellow-200/70 text-center">
-                                                        📱 Toma una foto clara de la bomba antes de guardar los valores
+                                                        📱 Toma una foto clara de la bomba antes de guardar los valores<br>
+                                                        <span class="text-yellow-300/60">Máximo 10MB por fotografía</span>
                                                     </p>
                                                     
                                                     <!-- Botones de control -->
@@ -351,33 +354,40 @@
                                                  x-transition:leave-end="opacity-0"
                                                  @click.self="closeModal()"
                                                  @keydown.escape.window="closeModal()"
-                                                 class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
-                                                <div class="relative max-w-4xl max-h-full p-4">
-                                                    <div class="relative bg-white rounded-lg shadow-2xl overflow-hidden">
-                                                        <!-- Header del modal -->
-                                                        <div class="flex items-center justify-between p-4 bg-gray-100 border-b">
-                                                            <h3 class="text-lg font-semibold text-gray-800">
-                                                                📸 Fotografía de {{ $nombreBomba }}
-                                                            </h3>
-                                                            <button type="button" @click="closeModal()" 
-                                                                    class="text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full p-2 transition-all duration-200">
-                                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                                                </svg>
-                                                            </button>
+                                                 class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm">
+                                                
+                                                <!-- Contenedor scrolleable que ocupa toda la pantalla -->
+                                                <div class="h-full w-full overflow-y-auto flex items-start justify-center p-4">
+                                                    <div class="w-full max-w-4xl my-8">
+                                                        <div class="bg-white rounded-lg shadow-2xl overflow-hidden">
+                                                            <!-- Header del modal con botón de cerrar -->
+                                                            <div class="flex items-center justify-between p-4 bg-gray-100 border-b sticky top-0">
+                                                                <h3 class="text-lg font-semibold text-gray-800">
+                                                                    📸 Fotografía de {{ $nombreBomba }}
+                                                                </h3>
+                                                                <button type="button" @click="closeModal()" 
+                                                                        class="text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full p-3 transition-all duration-200 text-xl font-bold">
+                                                                    ✕
+                                                                </button>
+                                                            </div>
+                                                            
+                                                            <!-- Imagen completa -->
+                                                            <div class="p-4 bg-gray-50">
+                                                                <img :src="previewUrl" :alt="'Fotografía completa de {{ $nombreBomba }}'" 
+                                                                     class="w-full h-auto object-contain rounded-lg shadow-lg">
+                                                            </div>
+                                                            
+                                                            <!-- Footer con botón cerrar -->
+                                                            <div class="flex items-center justify-center p-4 bg-gray-100 border-t sticky bottom-0">
+                                                                <button type="button" @click="closeModal()" 
+                                                                        class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-bold transition-all duration-200">
+                                                                    Cerrar
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                        
-                                                        <!-- Imagen completa -->
-                                                        <div class="p-4 bg-gray-50">
-                                                            <img :src="previewUrl" :alt="'Fotografía completa de {{ $nombreBomba }}'" 
-                                                                 class="w-full max-h-[70vh] object-contain rounded-lg shadow-lg">
-                                                        </div>
-                                                        
-                                                        <!-- Footer simple -->
-                                                        <div class="flex items-center justify-center p-4 bg-gray-100 border-t">
-                                                            <button type="button" @click="closeModal()" 
-                                                                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-lg text-sm transition-all duration-200">
-                                                                Cerrar
+                                                    </div>
+                                                </div>
+                                            </div>
                                                             </button>
                                                         </div>
                                                     </div>
@@ -487,45 +497,86 @@
                 
                 handleFileChange(event) {
                     const file = event.target.files[0];
+                    console.log('=== FILE CHANGE DEBUG ===');
+                    console.log('Event:', event);
+                    console.log('Target:', event.target);
+                    console.log('Files length:', event.target.files.length);
+                    console.log('File:', file);
+                    
                     if (file) {
+                        console.log('File details:');
+                        console.log('- Name:', file.name);
+                        console.log('- Size:', file.size);
+                        console.log('- Type:', file.type);
+                        console.log('- Last modified:', file.lastModified);
+                        
+                        // Validaciones básicas en frontend
+                        if (file.size === 0) {
+                            alert('El archivo está vacío. Por favor seleccione una fotografía válida.');
+                            event.target.value = '';
+                            return;
+                        }
+                        
+                        if (file.size > 10 * 1024 * 1024) { // 10MB
+                            alert('El archivo es demasiado grande (' + Math.round(file.size / 1024 / 1024 * 100) / 100 + 'MB). Máximo 10MB.');
+                            event.target.value = '';
+                            return;
+                        }
+                        
+                        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                        if (!allowedTypes.includes(file.type)) {
+                            alert('Tipo de archivo no válido. Use: JPG, PNG, GIF o WebP');
+                            event.target.value = '';
+                            return;
+                        }
+                        
+                        console.log('File validation passed, creating preview...');
                         const reader = new FileReader();
                         reader.onload = (e) => {
                             this.previewUrl = e.target.result;
                             this.showPreview = true;
+                            console.log('Preview URL set, length:', this.previewUrl.length);
+                        };
+                        reader.onerror = (e) => {
+                            console.error('FileReader error:', e);
                         };
                         reader.readAsDataURL(file);
+                    } else {
+                        console.log('No file selected');
                     }
                 },
                 
                 resetPhoto() {
                     this.previewUrl = this.originalUrl;
                     this.showPreview = this.originalUrl !== '';
-                    // Buscar el input dentro del contexto actual
-                    const input = this.$el.querySelector('input[name="fotografia_bomba"]');
-                    if (input) input.value = '';
+                    // Buscar el input dentro del contexto actual usando el ID específico
+                    const input = document.getElementById('file-input-{{ $nombreBomba }}');
+                    if (input) {
+                        input.value = '';
+                        console.log('Reset photo for {{ $nombreBomba }}');
+                    }
                 },
                 
                 removePhoto() {
                     this.previewUrl = '';
                     this.showPreview = false;
                     this.modalOpen = false;
-                    // Buscar el input dentro del contexto actual
-                    const input = this.$el.querySelector('input[name="fotografia_bomba"]');
-                    if (input) input.value = '';
+                    // Buscar el input dentro del contexto actual usando el ID específico
+                    const input = document.getElementById('file-input-{{ $nombreBomba }}');
+                    if (input) {
+                        input.value = '';
+                        console.log('Removed photo for {{ $nombreBomba }}');
+                    }
                 },
                 
                 openModal() {
                     console.log('openModal called, previewUrl:', this.previewUrl);
                     this.modalOpen = true;
-                    // Prevenir scroll del body cuando el modal está abierto
-                    document.body.style.overflow = 'hidden';
                 },
                 
                 closeModal() {
                     console.log('closeModal called');
                     this.modalOpen = false;
-                    // Restaurar scroll del body
-                    document.body.style.overflow = '';
                 }
             }
         }

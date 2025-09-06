@@ -310,7 +310,19 @@ class TurnosLoginController extends Controller
             
             // Validar que se haya subido una fotografía o que ya exista una
             \Log::info("Verificando fotografía...");
-            $tieneArchivo = $request->hasFile('fotografia_bomba');
+            \Log::info("hasFile('fotografia_bomba'): " . ($request->hasFile('fotografia_bomba') ? 'true' : 'false'));
+            
+            if ($request->hasFile('fotografia_bomba')) {
+                $file = $request->file('fotografia_bomba');
+                \Log::info("Archivo encontrado:");
+                \Log::info("- Nombre original: " . $file->getClientOriginalName());
+                \Log::info("- Tamaño: " . $file->getSize() . " bytes");
+                \Log::info("- Tipo MIME: " . $file->getMimeType());
+                \Log::info("- Es válido: " . ($file->isValid() ? 'true' : 'false'));
+                \Log::info("- Error: " . $file->getError());
+            }
+            
+            $tieneArchivo = $request->hasFile('fotografia_bomba') && $request->file('fotografia_bomba')->isValid();
             $fotografiaExistente = null;
             
             if ($turnoActual) {
@@ -320,14 +332,18 @@ class TurnosLoginController extends Controller
                                                                  ->first();
             }
             
+            \Log::info("Tiene archivo válido: " . ($tieneArchivo ? 'true' : 'false'));
+            \Log::info("Fotografía existente: " . ($fotografiaExistente ? 'true' : 'false'));
+            
             if (!$tieneArchivo && !$fotografiaExistente) {
-                \Log::error("No se encontró archivo de fotografía ni existe una fotografía previa");
+                \Log::error("No se encontró archivo de fotografía válido ni existe una fotografía previa");
                 return redirect()->route('turnos.panel')
-                    ->with('error', "❌ Debe subir una fotografía para {$nombreBomba} antes de guardar los valores");
+                    ->with('error', "❌ Debe subir una fotografía válida para {$nombreBomba} antes de guardar los valores");
             }
             
             if ($tieneArchivo) {
                 \Log::info("Fotografía nueva encontrada: " . $request->file('fotografia_bomba')->getClientOriginalName());
+                \Log::info("Tamaño del archivo: " . $request->file('fotografia_bomba')->getSize() . " bytes");
             } else {
                 \Log::info("Usando fotografía existente: " . $fotografiaExistente->fotografia);
             }
@@ -382,18 +398,41 @@ class TurnosLoginController extends Controller
                     ->with('error', 'Errores en ' . $nombreBomba . ': ' . implode(', ', $errores));
             }
             
-            // Permitir guardar si hay lecturas válidas O si hay una fotografía nueva
-            if ($contador > 0 || $request->hasFile('fotografia_bomba')) {
+            // Permitir guardar si hay lecturas válidas O si hay una fotografía nueva válida
+            if ($contador > 0 || ($request->hasFile('fotografia_bomba') && $request->file('fotografia_bomba')->isValid())) {
                 \Log::info("Procediendo a guardar datos y/o fotografía...");
                 
-                // Manejar la subida de fotografía (solo si hay archivo nuevo)
+                // Manejar la subida de fotografía (solo si hay archivo nuevo y válido)
                 $rutaFotografia = null;
-                if ($request->hasFile('fotografia_bomba')) {
+                if ($request->hasFile('fotografia_bomba') && $request->file('fotografia_bomba')->isValid()) {
                     $file = $request->file('fotografia_bomba');
-                    $filename = 'turno_' . $turnoActual->id . '_bomba_' . $bombaId . '_' . time() . '.' . $file->getClientOriginalExtension();
+                    
+                    // Validaciones adicionales del archivo
+                    if ($file->getSize() == 0) {
+                        \Log::error("El archivo está vacío");
+                        return redirect()->route('turnos.panel')
+                            ->with('error', "❌ El archivo de fotografía está vacío para {$nombreBomba}");
+                    }
+                    
+                    if ($file->getSize() > 10 * 1024 * 1024) { // 10MB máximo
+                        \Log::error("El archivo es demasiado grande: " . $file->getSize() . " bytes");
+                        return redirect()->route('turnos.panel')
+                            ->with('error', "❌ El archivo de fotografía es demasiado grande para {$nombreBomba} (máximo 10MB)");
+                    }
+                    
+                    $allowedTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+                    $extension = strtolower($file->getClientOriginalExtension());
+                    if (!in_array($extension, $allowedTypes)) {
+                        \Log::error("Tipo de archivo no permitido: " . $extension);
+                        return redirect()->route('turnos.panel')
+                            ->with('error', "❌ Tipo de archivo no permitido para {$nombreBomba}. Use: " . implode(', ', $allowedTypes));
+                    }
+                    
+                    $filename = 'turno_' . $turnoActual->id . '_bomba_' . $bombaId . '_' . time() . '.' . $extension;
                     \Log::info("Intentando guardar archivo: " . $filename);
                     \Log::info("Archivo válido: " . ($file->isValid() ? 'true' : 'false'));
                     \Log::info("Tamaño archivo: " . $file->getSize() . " bytes");
+                    \Log::info("Tipo MIME: " . $file->getMimeType());
                     
                     try {
                         $rutaFotografia = $file->storeAs('turnos/bombas', $filename, 'public');
@@ -401,10 +440,13 @@ class TurnosLoginController extends Controller
                             \Log::info("Fotografía guardada exitosamente: " . $rutaFotografia);
                         } else {
                             \Log::error("Error al guardar fotografía: storeAs retornó false");
+                            return redirect()->route('turnos.panel')
+                                ->with('error', "❌ Error al guardar la fotografía para {$nombreBomba}");
                         }
                     } catch (\Exception $e) {
                         \Log::error("Exception al guardar fotografía: " . $e->getMessage());
-                        $rutaFotografia = null;
+                        return redirect()->route('turnos.panel')
+                            ->with('error', "❌ Error técnico al guardar fotografía para {$nombreBomba}: " . $e->getMessage());
                     }
                 } else if ($fotografiaExistente) {
                     $rutaFotografia = $fotografiaExistente->fotografia;
