@@ -103,7 +103,7 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white h-screen w-full overflow-x-hidden" 
-      x-data="panelTurnos()" x-init="init()">>
+      x-data="panelTurnos()" x-init="init()">
     
     <!-- Notificaciones -->
     @if(session('success'))
