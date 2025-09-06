@@ -13,7 +13,8 @@ class Bomba extends Model
         'galonaje_regular',
         'galonaje_diesel',
         'galonaje_cc',
-        'estado'
+        'estado',
+        'fotografia'
     ];
 
     protected $casts = [
@@ -31,6 +32,11 @@ class Bomba extends Model
     public function historial()
     {
         return $this->hasMany(HistorialBomba::class);
+    }
+
+    public function datosTurno()
+    {
+        return $this->hasMany(TurnoBombaDatos::class);
     }
 
     public function ultimaActualizacion()

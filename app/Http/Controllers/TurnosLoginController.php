@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use App\Models\TurnoBombaDatos;
 
 class TurnosLoginController extends Controller
 {
@@ -85,28 +86,47 @@ class TurnosLoginController extends Controller
         }        // Cargar bombas con nueva estructura
         $bombas = [];
         $lecturas = [];
+        $fotografiasPorBomba = [];
+        
         if (auth()->user()->gasolinera_id) {
             $bombasQuery = \App\Models\Bomba::where('gasolinera_id', auth()->user()->gasolinera_id)
                                            ->orderBy('nombre')
                                            ->get();
             
-            foreach ($bombasQuery as $bomba) {
+        // Si hay turno activo, cargar fotografías existentes
+        if ($turnoActual) {
+            $fotografiasExistentes = \App\Models\TurnoBombaDatos::where('turno_id', $turnoActual->id)
+                                                               ->whereNotNull('fotografia')
+                                                               ->get()
+                                                               ->keyBy('bomba_id');
+                                                               
+            foreach ($fotografiasExistentes as $bombaId => $datos) {
+                $fotografiasPorBomba[$bombaId] = $datos->fotografia_url;
+            }
+        }            foreach ($bombasQuery as $bomba) {
                 $gasolinera = $bomba->gasolinera;
+                $fotografiaUrl = $fotografiasPorBomba[$bomba->id] ?? null;
+                
                 $bombas[$bomba->nombre] = [
                     'id' => $bomba->id,
                     'estado' => $bomba->estado,
+                    'fotografia_url' => $fotografiaUrl,
+                    'tiene_fotografia' => !empty($fotografiaUrl),
                     'combustibles' => [
                         'Super' => [
-                            'galonaje' => $bomba->galonaje_super,
+                            'lectura_actual' => $bomba->galonaje_super,
                             'precio' => $gasolinera->precio_super,
+                            'fecha_lectura' => $bomba->updated_at->format('d/m/Y H:i'),
                         ],
                         'Regular' => [
-                            'galonaje' => $bomba->galonaje_regular,
+                            'lectura_actual' => $bomba->galonaje_regular,
                             'precio' => $gasolinera->precio_regular,
+                            'fecha_lectura' => $bomba->updated_at->format('d/m/Y H:i'),
                         ],
                         'Diesel' => [
-                            'galonaje' => $bomba->galonaje_diesel,
+                            'lectura_actual' => $bomba->galonaje_diesel,
                             'precio' => $gasolinera->precio_diesel,
+                            'fecha_lectura' => $bomba->updated_at->format('d/m/Y H:i'),
                         ]
                     ],
                     'updated_at' => $bomba->updated_at->format('d/m/Y H:i')
@@ -114,8 +134,9 @@ class TurnosLoginController extends Controller
                 
                 // Agregar CC como lectura sin precio
                 $bombas[$bomba->nombre]['combustibles']['CC'] = [
-                    'galonaje' => $bomba->galonaje_cc,
+                    'lectura_actual' => $bomba->galonaje_cc,
                     'precio' => null, // CC sin precio
+                    'fecha_lectura' => $bomba->updated_at->format('d/m/Y H:i'),
                 ];
             }
             
@@ -148,7 +169,8 @@ class TurnosLoginController extends Controller
             'bombas',
             'lecturas',
             'efectivo',
-            'ultimaActualizacionEfectivo'
+            'ultimaActualizacionEfectivo',
+            'fotografiasPorBomba'
         ));
     }
     
@@ -256,6 +278,10 @@ class TurnosLoginController extends Controller
     public function guardarLecturasGrupo($nombreBomba, Request $request)
     {
         try {
+            \Log::info("=== INICIO GUARDADO LECTURAS ===");
+            \Log::info("Bomba: " . $nombreBomba);
+            \Log::info("Datos recibidos: ", $request->all());
+            
             $contador = 0;
             $errores = [];
             
@@ -269,60 +295,156 @@ class TurnosLoginController extends Controller
                     ->with('error', "Bomba {$nombreBomba} no encontrada");
             }
             
+            // Obtener turno activo
+            $turnoActual = \App\Models\Turno::where('user_id', auth()->id())
+                                           ->where('gasolinera_id', auth()->user()->gasolinera_id)
+                                           ->where('estado', 'abierto')
+                                           ->first();
+            
+            if (!$turnoActual) {
+                return redirect()->route('turnos.panel')
+                    ->with('error', 'No hay un turno activo para guardar los datos');
+            }
+            
             $bombaId = $bomba->id;
-            $actualizaciones = [];
-            $historialEntradas = [];
+            
+            // Validar que se haya subido una fotografía o que ya exista una
+            \Log::info("Verificando fotografía...");
+            $tieneArchivo = $request->hasFile('fotografia_bomba');
+            $fotografiaExistente = null;
+            
+            if ($turnoActual) {
+                $fotografiaExistente = \App\Models\TurnoBombaDatos::where('bomba_id', $bombaId)
+                                                                 ->where('turno_id', $turnoActual->id)
+                                                                 ->whereNotNull('fotografia')
+                                                                 ->first();
+            }
+            
+            if (!$tieneArchivo && !$fotografiaExistente) {
+                \Log::error("No se encontró archivo de fotografía ni existe una fotografía previa");
+                return redirect()->route('turnos.panel')
+                    ->with('error', "❌ Debe subir una fotografía para {$nombreBomba} antes de guardar los valores");
+            }
+            
+            if ($tieneArchivo) {
+                \Log::info("Fotografía nueva encontrada: " . $request->file('fotografia_bomba')->getClientOriginalName());
+            } else {
+                \Log::info("Usando fotografía existente: " . $fotografiaExistente->fotografia);
+            }
+            
+            $datosParaGuardar = [
+                'bomba_id' => $bombaId,
+                'turno_id' => $turnoActual->id,
+                'user_id' => auth()->id(),
+                'galonaje_super' => 0,
+                'galonaje_regular' => 0,
+                'galonaje_diesel' => 0,
+                'lectura_cc' => 0,
+                'fotografia' => null,
+                'fecha_turno' => now()
+            ];
             
             // Procesar cada tipo de combustible
+            \Log::info("Procesando combustibles para bomba ID: " . $bombaId);
             foreach (['super', 'regular', 'diesel', 'cc'] as $tipo) {
                 $lectura = $request->input("lectura_{$bombaId}_{$tipo}");
-                $campoGalonaje = "galonaje_{$tipo}";
+                $campoGalonaje = $tipo === 'cc' ? 'lectura_cc' : "galonaje_{$tipo}";
+                $campoActual = "galonaje_{$tipo}";
+                
+                \Log::info("Tipo: {$tipo}, Lectura ingresada: {$lectura}, Campo: {$campoGalonaje}");
                 
                 if ($lectura && is_numeric($lectura)) {
-                    $galonajeActual = $bomba->$campoGalonaje;
+                    $galonajeActual = $bomba->$campoActual;
+                    \Log::info("Galonaje actual {$tipo}: {$galonajeActual}");
                     
                     // Validar que la nueva lectura sea mayor que la actual
                     if ($lectura <= $galonajeActual) {
                         $errores[] = ucfirst($tipo) . ": La nueva lectura debe ser mayor que {$galonajeActual}";
+                        \Log::warning("Error validación {$tipo}: {$lectura} <= {$galonajeActual}");
                         continue;
                     }
                     
-                    // Preparar actualización
-                    $actualizaciones[$campoGalonaje] = $lectura;
-                    
-                    // Preparar entrada de historial
-                    $historialEntradas[] = [
-                        'bomba_id' => $bomba->id,
-                        'campo_modificado' => $campoGalonaje,
-                        'valor_anterior' => $galonajeActual,
-                        'valor_nuevo' => $lectura,
-                        'user_id' => auth()->id(),
-                        'observaciones' => 'Actualización de ' . ucfirst($tipo) . ' desde panel de turno',
-                        'created_at' => now(),
-                        'updated_at' => now()
-                    ];
-                    
+                    // Guardar en los datos del turno
+                    $datosParaGuardar[$campoGalonaje] = $lectura;
                     $contador++;
+                    \Log::info("Datos válidos para {$tipo}: {$lectura}");
+                } else {
+                    \Log::info("Lectura no válida para {$tipo}: {$lectura}");
                 }
             }
             
+            \Log::info("Contador final: " . $contador);
+            \Log::info("Errores: ", $errores);
+            
             if (!empty($errores)) {
+                \Log::error("Errores en validación: ", $errores);
                 return redirect()->route('turnos.panel')
                     ->with('error', 'Errores en ' . $nombreBomba . ': ' . implode(', ', $errores));
             }
             
-            if ($contador > 0) {
-                // Realizar todas las actualizaciones
-                $bomba->update($actualizaciones);
+            // Permitir guardar si hay lecturas válidas O si hay una fotografía nueva
+            if ($contador > 0 || $request->hasFile('fotografia_bomba')) {
+                \Log::info("Procediendo a guardar datos y/o fotografía...");
                 
-                // Insertar historial en batch
-                \App\Models\HistorialBomba::insert($historialEntradas);
+                // Manejar la subida de fotografía (solo si hay archivo nuevo)
+                $rutaFotografia = null;
+                if ($request->hasFile('fotografia_bomba')) {
+                    $file = $request->file('fotografia_bomba');
+                    $filename = 'turno_' . $turnoActual->id . '_bomba_' . $bombaId . '_' . time() . '.' . $file->getClientOriginalExtension();
+                    \Log::info("Intentando guardar archivo: " . $filename);
+                    \Log::info("Archivo válido: " . ($file->isValid() ? 'true' : 'false'));
+                    \Log::info("Tamaño archivo: " . $file->getSize() . " bytes");
+                    
+                    try {
+                        $rutaFotografia = $file->storeAs('turnos/bombas', $filename, 'public');
+                        if ($rutaFotografia) {
+                            \Log::info("Fotografía guardada exitosamente: " . $rutaFotografia);
+                        } else {
+                            \Log::error("Error al guardar fotografía: storeAs retornó false");
+                        }
+                    } catch (\Exception $e) {
+                        \Log::error("Exception al guardar fotografía: " . $e->getMessage());
+                        $rutaFotografia = null;
+                    }
+                } else if ($fotografiaExistente) {
+                    $rutaFotografia = $fotografiaExistente->fotografia;
+                    \Log::info("Usando fotografía existente: " . $rutaFotografia);
+                }
+                
+                $datosParaGuardar['fotografia'] = $rutaFotografia;
+                $datosParaGuardar['observaciones'] = "Datos guardados para turno {$turnoActual->id} - {$nombreBomba}";
+                
+                // Debugging: Log los datos antes de guardar
+                \Log::info("Datos para guardar: ", $datosParaGuardar);
+                
+                // Guardar o actualizar datos del turno para esta bomba
+                \App\Models\TurnoBombaDatos::updateOrCreate(
+                    [
+                        'bomba_id' => $bombaId,
+                        'turno_id' => $turnoActual->id
+                    ],
+                    $datosParaGuardar
+                );
+                
+                // También actualizar la tabla principal de bombas para mantener compatibilidad
+                $actualizacionesBomba = [];
+                foreach (['super', 'regular', 'diesel', 'cc'] as $tipo) {
+                    $lectura = $request->input("lectura_{$bombaId}_{$tipo}");
+                    if ($lectura && is_numeric($lectura)) {
+                        $actualizacionesBomba["galonaje_{$tipo}"] = $lectura;
+                    }
+                }
+                
+                if (!empty($actualizacionesBomba)) {
+                    $bomba->update($actualizacionesBomba);
+                }
                 
                 return redirect()->route('turnos.panel')
-                    ->with('success', "✅ {$nombreBomba}: {$contador} " . ($contador == 1 ? 'combustible actualizado' : 'combustibles actualizados'));
+                    ->with('success', "✅ {$nombreBomba}: " . ($contador > 0 ? "Datos y fotografía" : "Fotografía") . " guardados correctamente para el turno actual");
             } else {
+                \Log::warning("No se encontraron lecturas válidas ni fotografía nueva. Contador: " . $contador);
                 return redirect()->route('turnos.panel')
-                    ->with('info', "No se encontraron lecturas válidas para {$nombreBomba}");
+                    ->with('info', "ℹ️ {$nombreBomba}: No se ingresaron lecturas válidas ni se subió fotografía nueva");
             }
             
         } catch (\Exception $e) {

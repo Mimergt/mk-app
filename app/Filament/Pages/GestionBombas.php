@@ -15,7 +15,7 @@ class GestionBombas extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-building-office-2';
     
-    protected static ?string $navigationLabel = 'Bombas';
+    protected static ?string $navigationLabel = 'Gestión de Bombas';
     
     protected static ?string $title = 'Gestión de Bombas por Gasolinera';
 
@@ -89,15 +89,19 @@ class GestionBombas extends Page implements HasForms
                             'tipo' => 'Diesel',
                             'galonaje' => $bomba->galonaje_diesel,
                             'precio' => $gasolinera->precio_diesel,
-                        ],
-                        'cc' => [
-                            'tipo' => 'CC',
-                            'galonaje' => $bomba->galonaje_cc,
-                            'precio' => null, // CC sin precio
                         ]
                     ],
                     'historial' => $bomba->historial->toArray()
                 ];
+                
+                // Solo añadir CC si está activo en la gasolinera
+                if ($gasolinera->cc_activo) {
+                    $bombaInfo['combustibles']['cc'] = [
+                        'tipo' => 'CC',
+                        'galonaje' => $bomba->galonaje_cc,
+                        'precio' => $gasolinera->precio_cc,
+                    ];
+                }
                 
                 $bombasData[] = $bombaInfo;
                 
@@ -299,7 +303,10 @@ class GestionBombas extends Page implements HasForms
                 'precio_diesel' => $this->gasolineraActual->precio_diesel,
             ];
             
-            // CC ya no maneja precio - información removida
+            // Solo cargar precio CC si está activo
+            if ($this->gasolineraActual->cc_activo) {
+                $this->preciosData['precio_cc'] = $this->gasolineraActual->precio_cc;
+            }
         }
     }
 
@@ -315,6 +322,7 @@ class GestionBombas extends Page implements HasForms
                 'precio_super' => floatval($this->preciosData['precio_super'] ?? 0),
                 'precio_regular' => floatval($this->preciosData['precio_regular'] ?? 0),
                 'precio_diesel' => floatval($this->preciosData['precio_diesel'] ?? 0),
+                'precio_cc' => floatval($this->preciosData['precio_cc'] ?? 0),
                 'fecha_actualizacion_precios' => now(), // Agregar timestamp actual
             ];
 
@@ -411,6 +419,11 @@ class GestionBombas extends Page implements HasForms
                 'precio_diesel' => floatval($this->preciosData['precio_diesel'] ?? 0),
                 'fecha_actualizacion_precios' => now(),
             ];
+            
+            // Solo actualizar precio CC si está activo
+            if ($this->gasolineraActual->cc_activo && isset($this->preciosData['precio_cc'])) {
+                $precios['precio_cc'] = floatval($this->preciosData['precio_cc'] ?? 0);
+            }
 
             // Actualizar la gasolinera
             $this->gasolineraActual->update($precios);

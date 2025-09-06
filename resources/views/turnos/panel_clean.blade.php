@@ -110,7 +110,7 @@
                     </div>
                     
                     <!-- Botón Cerrar Turno -->
-                    <form method="POST" action="{{ route('turnos.cerrar-turno') }}" class="inline">
+                    <form method="POST" action="{{ route('turnos.cerrar') }}" class="inline">
                         @csrf
                         <button type="submit" 
                                 class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 transform hover:scale-105 shadow-lg"
@@ -120,7 +120,7 @@
                     </form>
                 @else
                     <!-- Botón Abrir Turno -->
-                    <form method="POST" action="{{ route('turnos.abrir-turno') }}" class="inline">
+                    <form method="POST" action="{{ route('turnos.abrir') }}" class="inline">
                         @csrf
                         <button type="submit" 
                                 class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 transform hover:scale-105 shadow-lg">
@@ -414,7 +414,7 @@
                     <p class="text-white/70 text-sm mb-4">
                         Debes abrir un turno para comenzar a registrar las lecturas de las bombas.
                     </p>
-                    <form method="POST" action="{{ route('turnos.abrir-turno') }}">
+                    <form method="POST" action="{{ route('turnos.abrir') }}">
                         @csrf
                         <button type="submit" 
                                 class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-xl text-sm font-bold transition-all duration-200 transform hover:scale-105 shadow-lg">
