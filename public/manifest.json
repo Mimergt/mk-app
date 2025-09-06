@@ -3,7 +3,7 @@
   "short_name": "MK Panel",
   "description": "Panel de operador para gestión de turnos y bombas de gasolina",
   "start_url": "/gas/panel",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "landscape-primary",
   "theme_color": "#1f2937",
   "background_color": "#111827",

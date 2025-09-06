@@ -1,5 +1,5 @@
-// Service Worker para Panel MK PWA
-const CACHE_NAME = 'panel-mk-v1';
+// Service Worker para Panel MK PWA - Fullscreen Mode
+const CACHE_NAME = 'panel-mk-fullscreen-v1';
 const urlsToCache = [
     '/',
     '/gas/panel',

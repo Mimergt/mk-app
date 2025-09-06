@@ -13,6 +13,16 @@
     <meta name="msapplication-TileColor" content="#1e3a8a">
     <meta name="msapplication-config" content="/browserconfig.xml">
     
+    <!-- Fullscreen Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-navbutton-color" content="#1e3a8a">
+    <meta name="msapplication-starturl" content="/gas/panel">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- Chrome Fullscreen -->
+    <meta name="theme-color" content="#1e3a8a" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1e3a8a" media="(prefers-color-scheme: dark)">
+    
     <!-- PWA Manifest -->
     <link rel="manifest" href="/manifest.json">
     
@@ -25,7 +35,33 @@
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        body { font-family: 'Inter', sans-serif; }
+        
+        /* Fullscreen PWA styles */
+        html, body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100vh;
+            overflow-x: hidden;
+            /* Evitar bounce en iOS */
+            overscroll-behavior: none;
+            /* Fullscreen específico para PWA */
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        /* Eliminar zoom en inputs en mobile */
+        input, textarea, select {
+            font-size: 16px !important;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+        
+        /* Evitar scroll horizontal */
+        * {
+            box-sizing: border-box;
+        }
         
         @keyframes pulse-dot {
             0%, 100% { opacity: 1; }
@@ -51,10 +87,23 @@
         
         /* Alpine.js cloak */
         [x-cloak] { display: none !important; }
+        
+        /* PWA Fullscreen optimization */
+        @media (display-mode: fullscreen) {
+            body {
+                padding-top: 0 !important;
+            }
+        }
+        
+        @media (display-mode: standalone) {
+            body {
+                padding-top: 0 !important;
+            }
+        }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white min-h-screen overflow-x-hidden" 
-      x-data="panelTurnos()" x-init="init()">
+<body class="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white h-screen w-full overflow-x-hidden" 
+      x-data="panelTurnos()" x-init="init()">>
     
     <!-- Notificaciones -->
     @if(session('success'))
@@ -708,6 +757,35 @@
                     });
             });
         }
+        
+        // Forzar fullscreen en PWA
+        function enableFullscreen() {
+            // Detectar si está en modo PWA
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                                window.navigator.standalone || 
+                                document.referrer.includes('android-app://');
+            
+            if (isStandalone) {
+                // Ocultar elementos de navegación del navegador si los hay
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.overflow = 'hidden';
+                
+                // Intentar fullscreen API si está disponible
+                if (document.documentElement.requestFullscreen) {
+                    document.addEventListener('click', function() {
+                        if (!document.fullscreenElement) {
+                            document.documentElement.requestFullscreen().catch(err => {
+                                console.log('Fullscreen no disponible:', err);
+                            });
+                        }
+                    }, { once: true });
+                }
+            }
+        }
+        
+        // Ejecutar cuando la página cargue
+        document.addEventListener('DOMContentLoaded', enableFullscreen);
+        window.addEventListener('load', enableFullscreen);
     </script>
 </body>
 </html>
