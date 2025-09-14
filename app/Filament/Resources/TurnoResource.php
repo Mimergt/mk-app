@@ -23,22 +23,93 @@ class TurnoResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('gasolinera_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('user_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\DatePicker::make('fecha')
-                    ->required(),
-                Forms\Components\TextInput::make('hora_inicio'),
-                Forms\Components\TextInput::make('hora_fin'),
-                Forms\Components\TextInput::make('dinero_apertura')
-                    ->numeric(),
-                Forms\Components\TextInput::make('dinero_cierre')
-                    ->numeric(),
-                Forms\Components\TextInput::make('estado')
-                    ->required(),
+                Forms\Components\Section::make('Información Básica')
+                    ->schema([
+                        Forms\Components\Select::make('gasolinera_id')
+                            ->relationship('gasolinera', 'nombre')
+                            ->required()
+                            ->searchable(),
+                        Forms\Components\Select::make('user_id')
+                            ->relationship('user', 'name')
+                            ->required()
+                            ->searchable(),
+                        Forms\Components\DatePicker::make('fecha')
+                            ->required(),
+                        Forms\Components\TimePicker::make('hora_inicio')
+                            ->seconds(false),
+                        Forms\Components\TimePicker::make('hora_fin')
+                            ->seconds(false),
+                        Forms\Components\Select::make('estado')
+                            ->options([
+                                'abierto' => 'Abierto',
+                                'cerrado' => 'Cerrado',
+                            ])
+                            ->required(),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Dinero')
+                    ->schema([
+                        Forms\Components\TextInput::make('dinero_apertura')
+                            ->label('Dinero Apertura')
+                            ->numeric()
+                            ->prefix('Q'),
+                        Forms\Components\TextInput::make('dinero_cierre')
+                            ->label('Dinero Cierre')
+                            ->numeric()
+                            ->prefix('Q'),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Totales de Ventas')
+                    ->schema([
+                        Forms\Components\TextInput::make('venta_credito')
+                            ->label('Crédito')
+                            ->numeric()
+                            ->prefix('Q'),
+                        Forms\Components\TextInput::make('venta_tarjetas')
+                            ->label('Tarjetas')
+                            ->numeric()
+                            ->prefix('Q'),
+                        Forms\Components\TextInput::make('venta_efectivo')
+                            ->label('Efectivo')
+                            ->numeric()
+                            ->prefix('Q'),
+                        Forms\Components\TextInput::make('venta_descuentos')
+                            ->label('Descuentos')
+                            ->numeric()
+                            ->prefix('Q'),
+                    ])->columns(2),
+
+                Forms\Components\Section::make('Nivel de Tanques - Pulgadas')
+                    ->schema([
+                        Forms\Components\TextInput::make('tanque_super_pulgadas')
+                            ->label('Super (pulg)')
+                            ->numeric()
+                            ->suffix('"'),
+                        Forms\Components\TextInput::make('tanque_regular_pulgadas')
+                            ->label('Regular (pulg)')
+                            ->numeric()
+                            ->suffix('"'),
+                        Forms\Components\TextInput::make('tanque_diesel_pulgadas')
+                            ->label('Diesel (pulg)')
+                            ->numeric()
+                            ->suffix('"'),
+                    ])->columns(3),
+
+                Forms\Components\Section::make('Nivel de Tanques - Galones')
+                    ->schema([
+                        Forms\Components\TextInput::make('tanque_super_galones')
+                            ->label('Super (gal)')
+                            ->numeric()
+                            ->suffix('gal'),
+                        Forms\Components\TextInput::make('tanque_regular_galones')
+                            ->label('Regular (gal)')
+                            ->numeric()
+                            ->suffix('gal'),
+                        Forms\Components\TextInput::make('tanque_diesel_galones')
+                            ->label('Diesel (gal)')
+                            ->numeric()
+                            ->suffix('gal'),
+                    ])->columns(3),
             ]);
     }
 
@@ -46,50 +117,169 @@ class TurnoResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('gasolinera_id')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('user_id')
-                    ->numeric()
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('gasolinera.nombre')
+                    ->label('Gasolinera')
+                    ->sortable()
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('user.name')
+                    ->label('Operador')
+                    ->sortable()
+                    ->searchable(),
                 Tables\Columns\TextColumn::make('fecha')
-                    ->date()
+                    ->date('d/m/Y')
                     ->sortable(),
-                Tables\Columns\TextColumn::make('hora_inicio'),
-                Tables\Columns\TextColumn::make('hora_fin'),
+                Tables\Columns\TextColumn::make('hora_inicio')
+                    ->time('H:i')
+                    ->label('Inicio'),
+                Tables\Columns\TextColumn::make('hora_fin')
+                    ->time('H:i')
+                    ->label('Fin'),
+                Tables\Columns\TextColumn::make('estado')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'cerrado' => 'success',
+                        'abierto' => 'warning',
+                        default => 'gray',
+                    }),
+
+                // Totales de Ventas
+                Tables\Columns\TextColumn::make('total_ventas')
+                    ->label('Total Ventas')
+                    ->getStateUsing(fn ($record) =>
+                        'Q' . number_format(
+                            ($record->venta_credito ?? 0) +
+                            ($record->venta_tarjetas ?? 0) +
+                            ($record->venta_efectivo ?? 0) -
+                            ($record->venta_descuentos ?? 0), 2
+                        )
+                    )
+                    ->sortable()
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('venta_credito')
+                    ->label('Crédito')
+                    ->money('GTQ')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('venta_tarjetas')
+                    ->label('Tarjetas')
+                    ->money('GTQ')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('venta_efectivo')
+                    ->label('Efectivo')
+                    ->money('GTQ')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('venta_descuentos')
+                    ->label('Descuentos')
+                    ->money('GTQ')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                // Nivel de Tanques (Galones)
+                Tables\Columns\TextColumn::make('tanque_super_galones')
+                    ->label('Super (gal)')
+                    ->suffix(' gal')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('tanque_regular_galones')
+                    ->label('Regular (gal)')
+                    ->suffix(' gal')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('tanque_diesel_galones')
+                    ->label('Diesel (gal)')
+                    ->suffix(' gal')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                // Pulgadas
+                Tables\Columns\TextColumn::make('tanque_super_pulgadas')
+                    ->label('Super (pulg)')
+                    ->suffix('"')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('tanque_regular_pulgadas')
+                    ->label('Regular (pulg)')
+                    ->suffix('"')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('tanque_diesel_pulgadas')
+                    ->label('Diesel (pulg)')
+                    ->suffix('"')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('dinero_apertura')
-                    ->numeric()
-                    ->sortable(),
+                    ->label('Dinero Apertura')
+                    ->money('GTQ')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('dinero_cierre')
-                    ->numeric()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('estado'),
+                    ->label('Dinero Cierre')
+                    ->money('GTQ')
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                    ->label('Creado')
+                    ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('Actualizado')
+                    ->dateTime('d/m/Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('gasolinera_id')
+                    ->relationship('gasolinera', 'nombre')
+                    ->label('Gasolinera'),
+                Tables\Filters\SelectFilter::make('user_id')
+                    ->relationship('user', 'name')
+                    ->label('Operador'),
+                Tables\Filters\SelectFilter::make('estado')
+                    ->options([
+                        'abierto' => 'Abierto',
+                        'cerrado' => 'Cerrado',
+                    ]),
+                Tables\Filters\Filter::make('fecha')
+                    ->form([
+                        Forms\Components\DatePicker::make('fecha_desde'),
+                        Forms\Components\DatePicker::make('fecha_hasta'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query
+                            ->when(
+                                $data['fecha_desde'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('fecha', '>=', $date),
+                            )
+                            ->when(
+                                $data['fecha_hasta'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('fecha', '<=', $date),
+                            );
+                    }),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->label('Ver'),
+                Tables\Actions\EditAction::make()
+                    ->label('Editar'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\TurnoBombaDatosRelationManager::class,
         ];
     }
 
@@ -98,6 +288,7 @@ class TurnoResource extends Resource
         return [
             'index' => Pages\ListTurnos::route('/'),
             'create' => Pages\CreateTurno::route('/create'),
+            'view' => Pages\ViewTurno::route('/{record}'),
             'edit' => Pages\EditTurno::route('/{record}/edit'),
         ];
     }

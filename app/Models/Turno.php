@@ -54,4 +54,14 @@ class Turno extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function turnoBombaDatos()
+    {
+        return $this->hasMany(TurnoBombaDatos::class);
+    }
+
+    public function bombaDatos()
+    {
+        return $this->hasMany(TurnoBombaDatos::class);
+    }
 }
