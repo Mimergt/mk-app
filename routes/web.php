@@ -26,5 +26,6 @@ Route::post('/gas/abrir-turno', [TurnosLoginController::class, 'abrirTurno'])->n
 Route::post('/gas/cerrar-turno', [TurnosLoginController::class, 'cerrarTurno'])->name('turnos.cerrar-turno')->middleware('auth');
 Route::post('/gas/bomba/{bomba}/guardar-lectura', [TurnosLoginController::class, 'guardarLecturaBomba'])->name('turnos.bomba.guardar-lectura')->middleware('auth');
 Route::post('/gas/bomba-grupo/{nombreBomba}/guardar', [TurnosLoginController::class, 'guardarLecturasGrupo'])->name('turnos.bomba.guardar-grupo')->middleware('auth');
-Route::post('/gas/guardar-efectivo', [TurnosLoginController::class, 'guardarEfectivo'])->name('turnos.guardar-efectivo')->middleware('auth');
+Route::post('/gas/guardar-ventas', [TurnosLoginController::class, 'guardarVentas'])->name('turnos.guardar-ventas')->middleware('auth');
+Route::post('/gas/guardar-tanques', [TurnosLoginController::class, 'guardarTanques'])->name('turnos.guardar-tanques')->middleware('auth');
 Route::post('/gas/logout', [TurnosLoginController::class, 'logout'])->name('turnos.logout');

@@ -145,32 +145,38 @@ class TurnosLoginController extends Controller
                 $lecturas[$bombaData['id']] = '';
             }
         }
-        
-        // Cargar efectivo
-        $efectivo = 0.00;
-        $ultimaActualizacionEfectivo = null;
-        if ($turnoActual) {
-            $efectivo = $turnoActual->dinero_cierre ?? 0.00;
-        }
-        
-        // Buscar la última actualización de efectivo
-        $ultimoTurno = \App\Models\Turno::where('gasolinera_id', auth()->user()->gasolinera_id)
-                                       ->whereNotNull('dinero_cierre')
-                                       ->latest('updated_at')
-                                       ->first();
-                                       
-        $ultimaActualizacionEfectivo = $ultimoTurno ? 
-            $ultimoTurno->updated_at->format('d/m/Y H:i') : null;
-        
+
+        // Datos de ventas
+        $datosVentas = [
+            'credito' => $turnoActual ? ($turnoActual->venta_credito ?? 0) : 0,
+            'tarjetas' => $turnoActual ? ($turnoActual->venta_tarjetas ?? 0) : 0,
+            'efectivo' => $turnoActual ? ($turnoActual->venta_efectivo ?? 0) : 0,
+            'descuentos' => $turnoActual ? ($turnoActual->venta_descuentos ?? 0) : 0,
+        ];
+
+        // Datos de nivel de tanques
+        $datosTanques = [
+            'pulgadas' => [
+                'super' => $turnoActual ? ($turnoActual->tanque_super_pulgadas ?? 0) : 0,
+                'regular' => $turnoActual ? ($turnoActual->tanque_regular_pulgadas ?? 0) : 0,
+                'diesel' => $turnoActual ? ($turnoActual->tanque_diesel_pulgadas ?? 0) : 0,
+            ],
+            'galones' => [
+                'super' => $turnoActual ? ($turnoActual->tanque_super_galones ?? 0) : 0,
+                'regular' => $turnoActual ? ($turnoActual->tanque_regular_galones ?? 0) : 0,
+                'diesel' => $turnoActual ? ($turnoActual->tanque_diesel_galones ?? 0) : 0,
+            ]
+        ];
+
         return view('turnos.panel', compact(
             'gasolineraUsuario',
-            'turnoActual', 
+            'turnoActual',
             'tiempoTranscurrido',
             'bombas',
             'lecturas',
-            'efectivo',
-            'ultimaActualizacionEfectivo',
-            'fotografiasPorBomba'
+            'fotografiasPorBomba',
+            'datosVentas',
+            'datosTanques'
         ));
     }
     
@@ -239,6 +245,76 @@ class TurnosLoginController extends Controller
     {
         Auth::logout();
         return redirect()->route('turnos.login');
+    }
+
+    public function guardarVentas(Request $request)
+    {
+        $request->validate([
+            'venta_credito' => 'nullable|numeric|min:0',
+            'venta_tarjetas' => 'nullable|numeric|min:0',
+            'venta_efectivo' => 'nullable|numeric|min:0',
+            'venta_descuentos' => 'nullable|numeric|min:0',
+        ]);
+
+        try {
+            $turnoActual = \App\Models\Turno::where('user_id', auth()->id())
+                                           ->where('gasolinera_id', auth()->user()->gasolinera_id)
+                                           ->where('estado', 'abierto')
+                                           ->first();
+
+            if (!$turnoActual) {
+                return back()->with('error', 'No hay un turno activo');
+            }
+
+            $turnoActual->update([
+                'venta_credito' => $request->venta_credito ?? 0,
+                'venta_tarjetas' => $request->venta_tarjetas ?? 0,
+                'venta_efectivo' => $request->venta_efectivo ?? 0,
+                'venta_descuentos' => $request->venta_descuentos ?? 0,
+            ]);
+
+            return back()->with('success', 'Datos de ventas guardados correctamente');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al guardar datos de ventas: ' . $e->getMessage());
+        }
+    }
+
+    public function guardarTanques(Request $request)
+    {
+        $request->validate([
+            'tanque_super_pulgadas' => 'nullable|numeric|min:0',
+            'tanque_regular_pulgadas' => 'nullable|numeric|min:0',
+            'tanque_diesel_pulgadas' => 'nullable|numeric|min:0',
+            'tanque_super_galones' => 'nullable|numeric|min:0',
+            'tanque_regular_galones' => 'nullable|numeric|min:0',
+            'tanque_diesel_galones' => 'nullable|numeric|min:0',
+        ]);
+
+        try {
+            $turnoActual = \App\Models\Turno::where('user_id', auth()->id())
+                                           ->where('gasolinera_id', auth()->user()->gasolinera_id)
+                                           ->where('estado', 'abierto')
+                                           ->first();
+
+            if (!$turnoActual) {
+                return back()->with('error', 'No hay un turno activo');
+            }
+
+            $turnoActual->update([
+                'tanque_super_pulgadas' => $request->tanque_super_pulgadas ?? 0,
+                'tanque_regular_pulgadas' => $request->tanque_regular_pulgadas ?? 0,
+                'tanque_diesel_pulgadas' => $request->tanque_diesel_pulgadas ?? 0,
+                'tanque_super_galones' => $request->tanque_super_galones ?? 0,
+                'tanque_regular_galones' => $request->tanque_regular_galones ?? 0,
+                'tanque_diesel_galones' => $request->tanque_diesel_galones ?? 0,
+            ]);
+
+            return back()->with('success', 'Datos de nivel de tanques guardados correctamente');
+
+        } catch (\Exception $e) {
+            return back()->with('error', 'Error al guardar datos de tanques: ' . $e->getMessage());
+        }
     }
     
     public function guardarLecturaBomba(\App\Models\Bomba $bomba, Request $request)
@@ -495,31 +571,4 @@ class TurnosLoginController extends Controller
         }
     }
     
-    public function guardarEfectivo(Request $request)
-    {
-        $request->validate([
-            'efectivo' => 'required|numeric|min:0'
-        ]);
-        
-        $nuevoEfectivo = $request->input('efectivo');
-        
-        // Buscar o crear turno actual
-        $turnoActual = \App\Models\Turno::where('user_id', auth()->id())
-                                       ->where('gasolinera_id', auth()->user()->gasolinera_id)
-                                       ->where('estado', 'abierto')
-                                       ->first();
-        
-        if (!$turnoActual) {
-            return redirect()->route('turnos.panel')
-                ->with('error', 'No hay un turno activo para actualizar el efectivo');
-        }
-        
-        // Actualizar el efectivo
-        $turnoActual->update([
-            'dinero_cierre' => $nuevoEfectivo
-        ]);
-        
-        return redirect()->route('turnos.panel')
-            ->with('success', 'Efectivo actualizado correctamente');
-    }
 }

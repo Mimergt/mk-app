@@ -65,29 +65,32 @@
             {{-- Contenido de bombas --}}
             @if($bombas && count($bombas) > 0)
                 <div class="space-y-6">
-                    @foreach($bombas as $nombreBomba => $bombasPorTipo)
+                    @foreach($bombas as $bombaInfo)
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
                             <div class="flex items-center justify-between mb-4">
                                 <div>
                                     <h3 class="text-xl font-semibold text-gray-900 dark:text-white flex items-center">
                                         <div class="w-4 h-4 bg-green-500 rounded-full mr-3"></div>
-                                        {{ $nombreBomba }}
+                                        {{ $bombaInfo['nombre'] }}
                                     </h3>
                                     @php
                                         $ultimaActualizacionPrecio = null;
                                         $ultimaActualizacionGalonaje = null;
-                                        
-                                        foreach($bombasPorTipo as $bomba) {
-                                            if(isset($bomba['ultima_actualizacion_precio']) && $bomba['ultima_actualizacion_precio']) {
-                                                if(!$ultimaActualizacionPrecio || $bomba['ultima_actualizacion_precio'] > $ultimaActualizacionPrecio) {
-                                                    $ultimaActualizacionPrecio = $bomba['ultima_actualizacion_precio'];
+
+                                        // Obtener fechas del historial si existe
+                                        if(isset($bombaInfo['historial']) && is_array($bombaInfo['historial'])) {
+                                            foreach($bombaInfo['historial'] as $historial) {
+                                                if(isset($historial['created_at'])) {
+                                                    if(!$ultimaActualizacionGalonaje || $historial['created_at'] > $ultimaActualizacionGalonaje) {
+                                                        $ultimaActualizacionGalonaje = $historial['created_at'];
+                                                    }
                                                 }
                                             }
-                                            if(isset($bomba['ultima_actualizacion_galonaje']) && $bomba['ultima_actualizacion_galonaje']) {
-                                                if(!$ultimaActualizacionGalonaje || $bomba['ultima_actualizacion_galonaje'] > $ultimaActualizacionGalonaje) {
-                                                    $ultimaActualizacionGalonaje = $bomba['ultima_actualizacion_galonaje'];
-                                                }
-                                            }
+                                        }
+
+                                        // Usar la fecha de actualización de precios de la gasolinera
+                                        if($gasolineraActual && $gasolineraActual->fecha_actualizacion_precios) {
+                                            $ultimaActualizacionPrecio = $gasolineraActual->fecha_actualizacion_precios;
                                         }
                                     @endphp
                                     
@@ -113,74 +116,71 @@
                                         @endif
                                     </div>
                                 </div>
-                                <button wire:click="guardarBomba('{{ $nombreBomba }}')" 
+                                <button wire:click="guardarBomba({{ $bombaInfo['id'] }})"
                                         class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-6 py-3 rounded-lg font-bold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl inline-flex items-center">
                                     <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"></path>
                                     </svg>
-                                    💾 Guardar {{ $nombreBomba }}
+                                    💾 Guardar {{ $bombaInfo['nombre'] }}
                                 </button>
                             </div>
                             
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                @foreach(['Super', 'Regular', 'Diesel'] as $tipo)
-                                    @php
-                                        $bomba = null;
-                                        foreach($bombasPorTipo as $b) {
-                                            if($b['tipo'] === $tipo) {
-                                                $bomba = $b;
-                                                break;
-                                            }
-                                        }
-                                    @endphp
+                            @php
+                                $combustiblesDisponibles = ['super', 'regular', 'diesel'];
+                                // Agregar CC si está activo en la gasolinera
+                                if($gasolineraActual && $gasolineraActual->cc_activo && isset($bombaInfo['combustibles']['cc'])) {
+                                    $combustiblesDisponibles[] = 'cc';
+                                }
+                            @endphp
+
+                            <div class="grid grid-cols-1 md:grid-cols-{{ count($combustiblesDisponibles) == 4 ? '4' : '3' }} gap-6">
+                                @foreach($combustiblesDisponibles as $tipoCombustible)
+                                    @if(isset($bombaInfo['combustibles'][$tipoCombustible]))
+                                        @php
+                                            $combustible = $bombaInfo['combustibles'][$tipoCombustible];
+                                            $tipo = $combustible['tipo']; // Super, Regular, Diesel, CC
+                                        @endphp
                                     
-                                    <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4 
-                                        {{ $tipo === 'Super' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-600' : 
-                                           ($tipo === 'Regular' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-600' : 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-600') }}">
+                                    <div class="border border-gray-200 dark:border-gray-600 rounded-lg p-4
+                                        {{ $tipo === 'Super' ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-600' :
+                                           ($tipo === 'Regular' ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-600' :
+                                           ($tipo === 'Diesel' ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-600' : 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-600')) }}">
                                         
                                         <div class="mb-3">
                                             <h4 class="font-bold text-lg text-gray-900 dark:text-white flex items-center">
-                                                <span class="w-4 h-4 rounded-full mr-3 
-                                                    {{ $tipo === 'Super' ? 'bg-green-500' : 
-                                                       ($tipo === 'Regular' ? 'bg-blue-500' : 'bg-yellow-500') }}">
+                                                <span class="w-4 h-4 rounded-full mr-3
+                                                    {{ $tipo === 'Super' ? 'bg-green-500' :
+                                                       ($tipo === 'Regular' ? 'bg-blue-500' :
+                                                       ($tipo === 'Diesel' ? 'bg-yellow-500' : 'bg-purple-500')) }}">
                                                 </span>
                                                 Combustible {{ $tipo }}
                                             </h4>
                                         </div>
                                         
-                                        @if($bomba)
-                                            <div class="space-y-4">
-                                                <div>
-                                                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                                                        💰 Precio (Quetzales):
-                                                    </label>
-                                                    <input type="number" 
-                                                           step="0.01"
-                                                           wire:model="bombaData.{{ $bomba['id'] }}.precio"
-                                                           class="w-full px-3 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-bold text-lg"
-                                                           placeholder="0.00">
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                                    💰 Precio (Quetzales):
+                                                </label>
+                                                <div class="w-full px-3 py-3 bg-gray-100 dark:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white font-bold text-lg">
+                                                    Q{{ number_format($combustible['precio'], 2) }}
                                                 </div>
-                                                <div>
-                                                    <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
-                                                        ⛽ Galones disponibles:
-                                                    </label>
-                                                    <input type="number" 
-                                                           step="0.01"
-                                                           wire:model="bombaData.{{ $bomba['id'] }}.galonaje"
-                                                           class="w-full px-3 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-bold text-lg"
-                                                           placeholder="0.00">
-                                                </div>
+                                                <p class="text-xs text-gray-500 mt-1">Los precios se modifican desde el botón "Actualizar Precios" arriba</p>
                                             </div>
-                                        @else
-                                            <div class="text-center py-6">
-                                                <p class="text-gray-500 dark:text-gray-400 text-sm mb-3">⚠️ No configurado</p>
-                                                <button wire:click="crearBomba('{{ $nombreBomba }}', '{{ $tipo }}')" 
-                                                        class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium bg-white dark:bg-gray-700 px-3 py-2 rounded border border-blue-200 dark:border-blue-600 hover:border-blue-400 transition-colors">
-                                                    ✚ Agregar {{ $tipo }}
-                                                </button>
+                                            <div>
+                                                <label class="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
+                                                    ⛽ Galones disponibles:
+                                                </label>
+                                                <input type="number"
+                                                       step="0.01"
+                                                       wire:model="bombaData.{{ $bombaInfo['id'] }}.galonaje_{{ $tipoCombustible }}"
+                                                       class="w-full px-3 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-bold text-lg"
+                                                       placeholder="0.00"
+                                                       value="{{ $combustible['galonaje'] }}">
                                             </div>
-                                        @endif
+                                        </div>
                                     </div>
+                                    @endif
                                 @endforeach
                             </div>
                         </div>

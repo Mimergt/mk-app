@@ -204,35 +204,6 @@
         @if($turnoActual)
             <!-- Estado: Turno Activo -->
             <div class="space-y-3">
-                <!-- Efectivo en Turno -->
-                <div class="bg-white/10 backdrop-blur-sm rounded-lg p-3 border border-white/20">
-                    <div class="flex items-center mb-2">
-                        <h3 class="text-sm font-bold flex items-center flex-1">
-                            <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                            Efectivo en Turno
-                        </h3>
-                        @if($turnoActual->updated_at)
-                            <span class="text-xs text-white/60">
-                                {{ $turnoActual->updated_at->format('d/m/Y H:i') }}
-                            </span>
-                        @endif
-                    </div>
-                    
-                    <form method="POST" action="{{ route('turnos.guardar-efectivo') }}" class="flex items-end space-x-2">
-                        @csrf
-                        <div class="flex-1">
-                            <input type="number" step="0.001" inputmode="decimal" pattern="[0-9]+(\.[0-9]{1,3})?" 
-                                   name="efectivo" value="{{ old('efectivo', $turnoActual->efectivo ?? 0) }}" 
-                                   class="w-full px-3 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-sm" 
-                                   placeholder="0.00" required>
-                        </div>
-                        <button type="submit"
-                                class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-xs font-bold transition-all duration-200">
-                            💾 Guardar
-                        </button>
-                    </form>
-                </div>
-
                 <!-- Grid de Bombas -->
                 @if($bombas && count($bombas) > 0)
                     <div class="space-y-3">
@@ -484,6 +455,157 @@
                                 <!-- Modal para imagen completa - FUERA DEL DIV DE LA BOMBA -->
                             </div>
                         @endforeach
+                    </div>
+
+                    <!-- Sección de Totales de Ventas -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 mb-8">
+                        <h3 class="text-3xl font-bold mb-6 text-center flex items-center justify-center">
+                            <div class="w-6 h-6 bg-green-500 rounded-full mr-3"></div>
+                            💰 Totales de Ventas
+                        </h3>
+
+                        <form action="{{ route('turnos.guardar-ventas') }}" method="POST">
+                            @csrf
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                                <div>
+                                    <label class="block text-sm font-semibold text-white/80 mb-2">Crédito (Q):</label>
+                                    <input type="number"
+                                           step="0.01"
+                                           name="venta_credito"
+                                           value="{{ $datosVentas['credito'] }}"
+                                           class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg text-center"
+                                           placeholder="0.00">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-white/80 mb-2">Tarjetas (Q):</label>
+                                    <input type="number"
+                                           step="0.01"
+                                           name="venta_tarjetas"
+                                           value="{{ $datosVentas['tarjetas'] }}"
+                                           class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg text-center"
+                                           placeholder="0.00">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-white/80 mb-2">Efectivo (Q):</label>
+                                    <input type="number"
+                                           step="0.01"
+                                           name="venta_efectivo"
+                                           value="{{ $datosVentas['efectivo'] }}"
+                                           class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg text-center"
+                                           placeholder="0.00">
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-white/80 mb-2">Descuentos (Q):</label>
+                                    <input type="number"
+                                           step="0.01"
+                                           name="venta_descuentos"
+                                           value="{{ $datosVentas['descuentos'] }}"
+                                           class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg text-center"
+                                           placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit"
+                                        class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all duration-200 transform hover:scale-105 shadow-xl">
+                                    💾 Guardar Totales de Ventas
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Sección de Nivel de Tanques -->
+                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 mb-8">
+                        <h3 class="text-3xl font-bold mb-6 text-center flex items-center justify-center">
+                            <div class="w-6 h-6 bg-blue-500 rounded-full mr-3"></div>
+                            ⛽ Nivel de Tanques
+                        </h3>
+
+                        <form action="{{ route('turnos.guardar-tanques') }}" method="POST">
+                            @csrf
+
+                            <!-- Sección Pulgadas -->
+                            <div class="mb-8">
+                                <h4 class="text-xl font-bold mb-4 text-blue-300">📏 En Pulgadas</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-white/80 mb-2">Super (pulg):</label>
+                                        <input type="number"
+                                               step="0.01"
+                                               name="tanque_super_pulgadas"
+                                               value="{{ $datosTanques['pulgadas']['super'] }}"
+                                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-lg text-center"
+                                               placeholder="0.00">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-semibold text-white/80 mb-2">Regular (pulg):</label>
+                                        <input type="number"
+                                               step="0.01"
+                                               name="tanque_regular_pulgadas"
+                                               value="{{ $datosTanques['pulgadas']['regular'] }}"
+                                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg text-center"
+                                               placeholder="0.00">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-semibold text-white/80 mb-2">Diesel (pulg):</label>
+                                        <input type="number"
+                                               step="0.01"
+                                               name="tanque_diesel_pulgadas"
+                                               value="{{ $datosTanques['pulgadas']['diesel'] }}"
+                                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 font-mono text-lg text-center"
+                                               placeholder="0.00">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sección Galones -->
+                            <div class="mb-8">
+                                <h4 class="text-xl font-bold mb-4 text-green-300">🪣 En Galones</h4>
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-white/80 mb-2">Super (gal):</label>
+                                        <input type="number"
+                                               step="0.01"
+                                               name="tanque_super_galones"
+                                               value="{{ $datosTanques['galones']['super'] }}"
+                                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-lg text-center"
+                                               placeholder="0.00">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-semibold text-white/80 mb-2">Regular (gal):</label>
+                                        <input type="number"
+                                               step="0.01"
+                                               name="tanque_regular_galones"
+                                               value="{{ $datosTanques['galones']['regular'] }}"
+                                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg text-center"
+                                               placeholder="0.00">
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-semibold text-white/80 mb-2">Diesel (gal):</label>
+                                        <input type="number"
+                                               step="0.01"
+                                               name="tanque_diesel_galones"
+                                               value="{{ $datosTanques['galones']['diesel'] }}"
+                                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 font-mono text-lg text-center"
+                                               placeholder="0.00">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-center">
+                                <button type="submit"
+                                        class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all duration-200 transform hover:scale-105 shadow-xl">
+                                    💾 Guardar Nivel de Tanques
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 @endif
             </div>
