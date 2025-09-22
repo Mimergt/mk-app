@@ -94,7 +94,7 @@
                                         
                                         {{-- Indicador de selección --}}
                                         @if($numeroMes == $this->mesSeleccionado)
-                                            <div class="absolute -top-2 -right-2 bg-primary-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                                            <div class="absolute -top-2 -right-2 bg-primary-500 dark:text-white text-xs px-2 py-1 rounded-full font-semibold">
                                                 Activo
                                             </div>
                                         @endif
@@ -312,7 +312,7 @@
                 <button 
                     type="button"
                     wire:click="guardarPreciosCompraMes"
-                    class="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white px-10 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ease-in-out"
+                    class="bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 dark:text-white px-10 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ease-in-out"
                 >
                     <span class="text-2xl mr-3">💾</span>
                     Guardar Precios de Compra

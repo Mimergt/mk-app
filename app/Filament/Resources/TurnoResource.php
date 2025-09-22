@@ -79,37 +79,6 @@ class TurnoResource extends Resource
                             ->prefix('Q'),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Nivel de Tanques - Pulgadas')
-                    ->schema([
-                        Forms\Components\TextInput::make('tanque_super_pulgadas')
-                            ->label('Super (pulg)')
-                            ->numeric()
-                            ->suffix('"'),
-                        Forms\Components\TextInput::make('tanque_regular_pulgadas')
-                            ->label('Regular (pulg)')
-                            ->numeric()
-                            ->suffix('"'),
-                        Forms\Components\TextInput::make('tanque_diesel_pulgadas')
-                            ->label('Diesel (pulg)')
-                            ->numeric()
-                            ->suffix('"'),
-                    ])->columns(3),
-
-                Forms\Components\Section::make('Nivel de Tanques - Galones')
-                    ->schema([
-                        Forms\Components\TextInput::make('tanque_super_galones')
-                            ->label('Super (gal)')
-                            ->numeric()
-                            ->suffix('gal'),
-                        Forms\Components\TextInput::make('tanque_regular_galones')
-                            ->label('Regular (gal)')
-                            ->numeric()
-                            ->suffix('gal'),
-                        Forms\Components\TextInput::make('tanque_diesel_galones')
-                            ->label('Diesel (gal)')
-                            ->numeric()
-                            ->suffix('gal'),
-                    ])->columns(3),
             ]);
     }
 
@@ -177,39 +146,6 @@ class TurnoResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                // Nivel de Tanques (Galones)
-                Tables\Columns\TextColumn::make('tanque_super_galones')
-                    ->label('Super (gal)')
-                    ->suffix(' gal')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('tanque_regular_galones')
-                    ->label('Regular (gal)')
-                    ->suffix(' gal')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('tanque_diesel_galones')
-                    ->label('Diesel (gal)')
-                    ->suffix(' gal')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                // Pulgadas
-                Tables\Columns\TextColumn::make('tanque_super_pulgadas')
-                    ->label('Super (pulg)')
-                    ->suffix('"')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('tanque_regular_pulgadas')
-                    ->label('Regular (pulg)')
-                    ->suffix('"')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('tanque_diesel_pulgadas')
-                    ->label('Diesel (pulg)')
-                    ->suffix('"')
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
 
                 Tables\Columns\TextColumn::make('dinero_apertura')
                     ->label('Dinero Apertura')

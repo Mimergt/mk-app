@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TurnosLoginController;
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect('/admin/login');
 });
 
 // Ruta de login por defecto que redirige al login de turnos
@@ -27,5 +27,4 @@ Route::post('/gas/cerrar-turno', [TurnosLoginController::class, 'cerrarTurno'])-
 Route::post('/gas/bomba/{bomba}/guardar-lectura', [TurnosLoginController::class, 'guardarLecturaBomba'])->name('turnos.bomba.guardar-lectura')->middleware('auth');
 Route::post('/gas/bomba-grupo/{nombreBomba}/guardar', [TurnosLoginController::class, 'guardarLecturasGrupo'])->name('turnos.bomba.guardar-grupo')->middleware('auth');
 Route::post('/gas/guardar-ventas', [TurnosLoginController::class, 'guardarVentas'])->name('turnos.guardar-ventas')->middleware('auth');
-Route::post('/gas/guardar-tanques', [TurnosLoginController::class, 'guardarTanques'])->name('turnos.guardar-tanques')->middleware('auth');
 Route::post('/gas/logout', [TurnosLoginController::class, 'logout'])->name('turnos.logout');

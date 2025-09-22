@@ -131,14 +131,12 @@
             <div class="flex items-center space-x-3">
                 <!-- Logo y Info -->
                 <div class="flex items-center space-x-2">
-                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
-                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M19.44 6.5L15.5 2.56a1 1 0 00-.71-.29H8a2 2 0 00-2 2v16a2 2 0 002 2h8a2 2 0 002-2V7.21a1 1 0 00-.29-.71zM16 18H8v-2h8v2zm0-4H8v-2h8v2zm-3-6V3l5 5h-5z"></path>
-                        </svg>
-                    </div>
                     <div>
-                        <h1 class="text-lg font-bold">{{ auth()->user()->gasolinera->nombre }}</h1>
-                        <p class="text-xs text-white/80">{{ auth()->user()->name }}</p>
+                        <div class="flex items-center space-x-2">
+                            <img src="{{ asset('images/MONTEKARLO_logo.png') }}" alt="Logo" class="w-20 rounded-full">
+                            <h1 class="text-lg font-bold">{{ auth()->user()->gasolinera->nombre }}</h1>
+                        </div>
+                        <!-- <p class="text-xs text-white/80">Usuaio: {{ auth()->user()->name }}</p> -->
                     </div>
                 </div>
 
@@ -210,7 +208,7 @@
                         @foreach($bombas as $nombreBomba => $bombaData)
                             <div x-data="{ bombaExpanded: false }" 
                                  data-bomba="{{ $nombreBomba }}"
-                                 class="bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg overflow-hidden p-2 w-full">
+                                 class="bg-black/40 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg overflow-hidden p-2 w-full">
                                 <!-- Header de la bomba (siempre visible) -->
                                 <div class="p-3 cursor-pointer hover:bg-white/5 transition-all duration-200" 
                                      @click="bombaExpanded = !bombaExpanded; console.log('{{ $nombreBomba }}:', bombaExpanded)">
@@ -238,7 +236,7 @@
                                 <!-- Contenido colapsable -->
                                 <div x-show="bombaExpanded" 
                                      x-cloak
-                                     class="border-t border-white/20 bg-white/5"
+                                     class="border-t border-white/"
                                      style="display: none;">
                                     <form action="{{ route('turnos.bomba.guardar-grupo', $nombreBomba) }}" method="POST" enctype="multipart/form-data" class="p-3">
                                         @csrf
@@ -247,14 +245,14 @@
                                             @foreach(['Super', 'Regular', 'Diesel', 'CC'] as $tipo)
                                                 @if(isset($bombaData['combustibles'][$tipo]))
                                                     @php $combustible = $bombaData['combustibles'][$tipo]; @endphp
-                                                    <div class="@if($tipo === 'CC') bg-gradient-to-br from-purple-600/20 to-purple-400/10 rounded-xl p-3 border-2 border-purple-400/60 shadow-lg ring-2 ring-purple-300/30 @else bg-white/10 rounded-xl p-3 border border-white/10 shadow-sm @endif">
+                                                    <div class="@if($tipo === 'Diesel')bg-white/20 @endif @if($tipo === 'Super') bg-red-500/30 @endif @if($tipo === 'Regular')bg-yellow-500/70 @endif @if($tipo === 'CC')bg-black/50 rounded-xl p-3 border-2 border-purple-400/60 shadow-lg ring-2 ring-purple-300/30 @else rounded-xl p-3 border border-white/10 shadow-sm @endif">
                                                         <div class="flex items-center justify-between mb-2">
                                                             <h4 class="text-sm font-bold flex items-center @if($tipo === 'CC') text-purple-200 bg-purple-500/20 px-2 py-1 rounded-lg @endif">
                                                                 <span class="mr-2 text-base @if($tipo === 'CC') text-lg @endif">
-                                                                    @if($tipo === 'Super') 🟢
+                                                                    @if($tipo === 'Super') 🔴
                                                                     @elseif($tipo === 'CC') 🟣
-                                                                    @elseif($tipo === 'Regular') 🔵  
-                                                                    @elseif($tipo === 'Diesel') 🟡
+                                                                    @elseif($tipo === 'Regular') 🟡  
+                                                                    @elseif($tipo === 'Diesel') 🔵
                                                                     @else 🟣
                                                                     @endif
                                                                 </span>
@@ -300,7 +298,7 @@
                                                                 <input type="number" step="0.001" inputmode="decimal" pattern="[0-9]+(\.[0-9]{1,3})?" 
                                                                        name="lectura_{{ $bombaData['id'] }}_{{ strtolower($tipo) }}" 
                                                                        min="{{ $combustible['lectura_actual'] + 0.001 }}"
-                                                                       class="w-full px-3 py-3 @if($tipo === 'CC') bg-gradient-to-r from-purple-500/30 to-purple-400/20 border-3 border-purple-300/80 text-purple-100 placeholder-purple-200/80 focus:ring-purple-300/60 focus:border-purple-200 hover:bg-purple-400/40 shadow-lg font-extrabold @else bg-orange-400/20 border-2 border-orange-400/70 text-white placeholder-orange-200/70 focus:ring-orange-400/50 focus:border-orange-300 hover:bg-orange-400/30 @endif rounded-lg font-bold focus:outline-none focus:ring-4 font-mono text-sm text-center transition-all duration-200"
+                                                                       class="w-full px-3 py-3 @if($tipo === 'CC') bg-gradient-to-r from-purple-500/30 to-purple-400/20 border-3 border-purple-300/80 text-purple-100 placeholder-purple-200/80 focus:ring-purple-300/60 focus:border-purple-200 hover:bg-purple-400/40 shadow-lg font-extrabold @else bg-white border-2 border-orange-400/70 text-black placeholder-black-400/50 focus:ring-orange-400/50 focus:border-orange-300 hover:bg-orange-400/30 @endif rounded-lg font-bold focus:outline-none focus:ring-4 font-mono text-sm text-center transition-all duration-200"
                                                                        placeholder="{{ number_format($combustible['lectura_actual'] + 1, 3) }}">
                                                                 <input type="hidden" name="bomba_id" value="{{ $bombaData['id'] }}">
                                                                 <input type="hidden" name="tipo_combustible_{{ strtolower($tipo) }}" value="{{ strtolower($tipo) }}">
@@ -441,7 +439,7 @@
                                         </div>
                                         
                                         <!-- Botón Guardar al final -->
-                                        <div class="mt-4 text-center">
+                                        <div class="m-4 text-center">
                                             <button type="submit" 
                                                     :disabled="processing"
                                                     class="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl text-sm font-bold transition-all duration-200 transform hover:scale-105 w-full shadow-lg">
@@ -508,6 +506,32 @@
                                 </div>
                             </div>
 
+                            <!-- Total calculado en tiempo real -->
+                            <div class="bg-green-500/20 border-2 border-green-400/50 rounded-xl p-4 mb-6" x-data="ventasCalculator()" x-init="init()">
+                                <h4 class="text-lg font-bold text-green-300 mb-3 text-center flex items-center justify-center">
+                                    🧮 Total Calculado de Ventas
+                                </h4>
+                                <div class="text-center">
+                                    <div class="text-3xl font-bold text-green-200 font-mono" x-text="'Q ' + totalVentas.toFixed(2)"></div>
+                                    <p class="text-xs text-green-300/70 mt-2">
+                                        (Crédito + Tarjetas + Efectivo - Descuentos)
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Total antes del botón -->
+                            <div class="bg-gradient-to-r from-green-500/30 to-green-600/30 border-3 border-green-400/70 rounded-2xl p-6 mb-6 shadow-2xl">
+                                <div class="text-center">
+                                    <h4 class="text-xl font-bold text-green-200 mb-2 flex items-center justify-center">
+                                        💰 TOTAL DE VENTAS
+                                    </h4>
+                                    <div class="text-4xl font-extrabold text-white font-mono mb-2" x-text="'Q ' + totalVentas.toFixed(2)"></div>
+                                    <p class="text-sm text-green-200/80">
+                                        Crédito + Tarjetas + Efectivo - Descuentos
+                                    </p>
+                                </div>
+                            </div>
+
                             <div class="text-center">
                                 <button type="submit"
                                         class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all duration-200 transform hover:scale-105 shadow-xl">
@@ -517,96 +541,6 @@
                         </form>
                     </div>
 
-                    <!-- Sección de Nivel de Tanques -->
-                    <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 mb-8">
-                        <h3 class="text-3xl font-bold mb-6 text-center flex items-center justify-center">
-                            <div class="w-6 h-6 bg-blue-500 rounded-full mr-3"></div>
-                            ⛽ Nivel de Tanques
-                        </h3>
-
-                        <form action="{{ route('turnos.guardar-tanques') }}" method="POST">
-                            @csrf
-
-                            <!-- Sección Pulgadas -->
-                            <div class="mb-8">
-                                <h4 class="text-xl font-bold mb-4 text-blue-300">📏 En Pulgadas</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div>
-                                        <label class="block text-sm font-semibold text-white/80 mb-2">Super (pulg):</label>
-                                        <input type="number"
-                                               step="0.01"
-                                               name="tanque_super_pulgadas"
-                                               value="{{ $datosTanques['pulgadas']['super'] }}"
-                                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-lg text-center"
-                                               placeholder="0.00">
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-semibold text-white/80 mb-2">Regular (pulg):</label>
-                                        <input type="number"
-                                               step="0.01"
-                                               name="tanque_regular_pulgadas"
-                                               value="{{ $datosTanques['pulgadas']['regular'] }}"
-                                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg text-center"
-                                               placeholder="0.00">
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-semibold text-white/80 mb-2">Diesel (pulg):</label>
-                                        <input type="number"
-                                               step="0.01"
-                                               name="tanque_diesel_pulgadas"
-                                               value="{{ $datosTanques['pulgadas']['diesel'] }}"
-                                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 font-mono text-lg text-center"
-                                               placeholder="0.00">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Sección Galones -->
-                            <div class="mb-8">
-                                <h4 class="text-xl font-bold mb-4 text-green-300">🪣 En Galones</h4>
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                    <div>
-                                        <label class="block text-sm font-semibold text-white/80 mb-2">Super (gal):</label>
-                                        <input type="number"
-                                               step="0.01"
-                                               name="tanque_super_galones"
-                                               value="{{ $datosTanques['galones']['super'] }}"
-                                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 font-mono text-lg text-center"
-                                               placeholder="0.00">
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-semibold text-white/80 mb-2">Regular (gal):</label>
-                                        <input type="number"
-                                               step="0.01"
-                                               name="tanque_regular_galones"
-                                               value="{{ $datosTanques['galones']['regular'] }}"
-                                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-lg text-center"
-                                               placeholder="0.00">
-                                    </div>
-
-                                    <div>
-                                        <label class="block text-sm font-semibold text-white/80 mb-2">Diesel (gal):</label>
-                                        <input type="number"
-                                               step="0.01"
-                                               name="tanque_diesel_galones"
-                                               value="{{ $datosTanques['galones']['diesel'] }}"
-                                               class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 font-mono text-lg text-center"
-                                               placeholder="0.00">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="text-center">
-                                <button type="submit"
-                                        class="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all duration-200 transform hover:scale-105 shadow-xl">
-                                    💾 Guardar Nivel de Tanques
-                                </button>
-                            </div>
-                        </form>
-                    </div>
                 @endif
             </div>
         @else
@@ -657,16 +591,42 @@
                         hour12: false
                     });
                     
-                    this.fechaActual = ahora.toLocaleDateString('es-GT', {
-                        weekday: 'long',
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    });
+                   this.fechaActual = ahora.toLocaleDateString('es-GT', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric'
+});
                 }
             }
         }
-        
+
+        function ventasCalculator() {
+            return {
+                totalVentas: 0,
+
+                init() {
+                    this.calcularTotal();
+                    // Escuchar cambios en los inputs de ventas
+                    const inputs = ['venta_credito', 'venta_tarjetas', 'venta_efectivo', 'venta_descuentos'];
+                    inputs.forEach(inputName => {
+                        const input = document.querySelector(`input[name="${inputName}"]`);
+                        if (input) {
+                            input.addEventListener('input', () => this.calcularTotal());
+                        }
+                    });
+                },
+
+                calcularTotal() {
+                    const credito = parseFloat(document.querySelector('input[name="venta_credito"]')?.value) || 0;
+                    const tarjetas = parseFloat(document.querySelector('input[name="venta_tarjetas"]')?.value) || 0;
+                    const efectivo = parseFloat(document.querySelector('input[name="venta_efectivo"]')?.value) || 0;
+                    const descuentos = parseFloat(document.querySelector('input[name="venta_descuentos"]')?.value) || 0;
+
+                    this.totalVentas = credito + tarjetas + efectivo - descuentos;
+                }
+            }
+        }
+
         // Auto-hide notifications after 5 seconds
         setTimeout(() => {
             const notifications = document.querySelectorAll('.fixed.top-4.right-4');

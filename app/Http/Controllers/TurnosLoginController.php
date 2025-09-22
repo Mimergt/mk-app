@@ -154,19 +154,6 @@ class TurnosLoginController extends Controller
             'descuentos' => $turnoActual ? ($turnoActual->venta_descuentos ?? 0) : 0,
         ];
 
-        // Datos de nivel de tanques
-        $datosTanques = [
-            'pulgadas' => [
-                'super' => $turnoActual ? ($turnoActual->tanque_super_pulgadas ?? 0) : 0,
-                'regular' => $turnoActual ? ($turnoActual->tanque_regular_pulgadas ?? 0) : 0,
-                'diesel' => $turnoActual ? ($turnoActual->tanque_diesel_pulgadas ?? 0) : 0,
-            ],
-            'galones' => [
-                'super' => $turnoActual ? ($turnoActual->tanque_super_galones ?? 0) : 0,
-                'regular' => $turnoActual ? ($turnoActual->tanque_regular_galones ?? 0) : 0,
-                'diesel' => $turnoActual ? ($turnoActual->tanque_diesel_galones ?? 0) : 0,
-            ]
-        ];
 
         return view('turnos.panel', compact(
             'gasolineraUsuario',
@@ -175,8 +162,7 @@ class TurnosLoginController extends Controller
             'bombas',
             'lecturas',
             'fotografiasPorBomba',
-            'datosVentas',
-            'datosTanques'
+            'datosVentas'
         ));
     }
     
@@ -280,42 +266,6 @@ class TurnosLoginController extends Controller
         }
     }
 
-    public function guardarTanques(Request $request)
-    {
-        $request->validate([
-            'tanque_super_pulgadas' => 'nullable|numeric|min:0',
-            'tanque_regular_pulgadas' => 'nullable|numeric|min:0',
-            'tanque_diesel_pulgadas' => 'nullable|numeric|min:0',
-            'tanque_super_galones' => 'nullable|numeric|min:0',
-            'tanque_regular_galones' => 'nullable|numeric|min:0',
-            'tanque_diesel_galones' => 'nullable|numeric|min:0',
-        ]);
-
-        try {
-            $turnoActual = \App\Models\Turno::where('user_id', auth()->id())
-                                           ->where('gasolinera_id', auth()->user()->gasolinera_id)
-                                           ->where('estado', 'abierto')
-                                           ->first();
-
-            if (!$turnoActual) {
-                return back()->with('error', 'No hay un turno activo');
-            }
-
-            $turnoActual->update([
-                'tanque_super_pulgadas' => $request->tanque_super_pulgadas ?? 0,
-                'tanque_regular_pulgadas' => $request->tanque_regular_pulgadas ?? 0,
-                'tanque_diesel_pulgadas' => $request->tanque_diesel_pulgadas ?? 0,
-                'tanque_super_galones' => $request->tanque_super_galones ?? 0,
-                'tanque_regular_galones' => $request->tanque_regular_galones ?? 0,
-                'tanque_diesel_galones' => $request->tanque_diesel_galones ?? 0,
-            ]);
-
-            return back()->with('success', 'Datos de nivel de tanques guardados correctamente');
-
-        } catch (\Exception $e) {
-            return back()->with('error', 'Error al guardar datos de tanques: ' . $e->getMessage());
-        }
-    }
     
     public function guardarLecturaBomba(\App\Models\Bomba $bomba, Request $request)
     {

@@ -44,14 +44,6 @@ class GenerateTurnos extends Command
             'venta_descuentos' => 0.00
         ];
 
-        $tanquesBase = [
-            'super_pulgadas' => 8.50,
-            'regular_pulgadas' => 14.00,
-            'diesel_pulgadas' => 13.25,
-            'super_galones' => 266.00,
-            'regular_galones' => 540.00,
-            'diesel_galones' => 430.00
-        ];
 
         // Lecturas base de bombas del turno 305
         $bombasBase = [
@@ -116,12 +108,6 @@ class GenerateTurnos extends Command
                     'venta_tarjetas' => round($ventasBase['venta_tarjetas'] * $variacion, 2),
                     'venta_efectivo' => round($ventasBase['venta_efectivo'] * $variacion, 2),
                     'venta_descuentos' => round($ventasBase['venta_descuentos'] * $variacion, 2),
-                    'tanque_super_pulgadas' => $tanquesBase['super_pulgadas'] + rand(-200, 200) / 100,
-                    'tanque_regular_pulgadas' => $tanquesBase['regular_pulgadas'] + rand(-200, 200) / 100,
-                    'tanque_diesel_pulgadas' => $tanquesBase['diesel_pulgadas'] + rand(-200, 200) / 100,
-                    'tanque_super_galones' => $tanquesBase['super_galones'] + rand(-50, 50),
-                    'tanque_regular_galones' => $tanquesBase['regular_galones'] + rand(-80, 80),
-                    'tanque_diesel_galones' => $tanquesBase['diesel_galones'] + rand(-60, 60),
                     'created_at' => $horaInicio,
                     'updated_at' => $horaFin
                 ]);

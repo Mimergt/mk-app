@@ -3,7 +3,7 @@
     <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl border-l-4 border-green-500 shadow-lg mb-6">
         <div class="p-6">
             <div class="flex items-center space-x-3 mb-4">
-                <div class="bg-green-500 text-white p-3 rounded-full">
+                <div class="bg-green-500 dark:text-white p-3 rounded-full">
                     <span class="text-2xl">💰</span>
                 </div>
                 <div>
@@ -118,7 +118,7 @@
                                         
                                         {{-- Indicador de selección --}}
                                         @if($numeroMes == $this->mesSeleccionado)
-                                            <div class="absolute -top-2 -right-2 bg-primary-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+                                            <div class="absolute -top-2 -right-2 bg-primary-500 dark:text-white text-xs px-2 py-1 rounded-full font-semibold">
                                                 Activo
                                             </div>
                                         @endif
@@ -292,7 +292,7 @@
         <div class="p-6">
             <div class="flex items-center justify-between mb-4">
                 <div class="flex items-center space-x-3">
-                    <div class="bg-orange-500 text-white p-3 rounded-full">
+                    <div class="bg-orange-500 dark:text-white p-3 rounded-full">
                         <span class="text-2xl">📝</span>
                     </div>
                     <div>
@@ -336,7 +336,7 @@
                             <button 
                                 type="button"
                                 wire:click="eliminarGastoAdicional('{{ $gasto['id'] }}')"
-                                class="bg-red-500 hover:bg-red-600 text-white p-2 rounded-lg transition-colors duration-200"
+                                class="bg-red-500 hover:bg-red-600 dark:text-white p-2 rounded-lg transition-colors duration-200"
                                 title="Eliminar gasto"
                             >
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -359,7 +359,7 @@
             <button 
                 type="button"
                 wire:click="guardarGastosMes"
-                class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-10 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ease-in-out"
+                class="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 dark:text-white px-10 py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ease-in-out"
             >
                 <span class="text-2xl mr-3">💾</span>
                 Guardar Gastos del Mes
@@ -372,7 +372,7 @@
             <button 
                 type="button"
                 wire:click="añadirGasto"
-                class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-3 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ease-in-out"
+                class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 dark:text-white px-8 py-3 rounded-xl font-semibold text-base shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200 ease-in-out"
             >
                 <span class="text-xl mr-3">➕</span>
                 Añadir Gasto Adicional
@@ -401,7 +401,7 @@
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="text-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <div class="text-center p-4 dark:bg-gray-700/50 rounded-lg">
                     <div class="text-sm text-gray-600 dark:text-gray-400 mb-1">Total Gastos Fijos</div>
                     <div class="text-2xl font-bold text-gray-900 dark:text-white">
                         Q{{ number_format(($gastos['impuestos'] ?? 0) + ($gastos['servicios'] ?? 0) + ($gastos['planilla'] ?? 0) + ($gastos['renta'] ?? 0), 2) }}

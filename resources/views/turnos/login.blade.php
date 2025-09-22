@@ -109,12 +109,8 @@
             <!-- Header -->
             <div class="text-center mb-6">
                 <div class="flex items-center justify-center space-x-4 mb-4">
-                    <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
-                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-4 0H7m-2 0h2m0 0V9a2 2 0 012-2h6a2 2 0 012 2v12M9 7h6m-6 4h6m-6 4h6m-6 4h6"/>
-                        </svg>
-                    </div>
-                    <h1 class="text-2xl font-bold text-gray-800">Sistema de Turnos</h1>
+                    
+                    <h1 class="text-2xl font-bold text-gray-800">Gasolineras - Monte Karlo</h1>
                 </div>
                 
                 <!-- Indicador de pasos -->
@@ -157,11 +153,7 @@
                         @foreach($gasolineras as $gasolinera)
                             <div class="gasolinera-card px-5 gasolinera-card px-5 bg-black border-2 border-black-200 hover:border-blue-400 rounded-lg p-4 cursor-pointer transition-all duration-200" @click="seleccionarGasolinera({{ $gasolinera }})">
                                 <div class="text-center">
-                                    <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-3">
-                                        <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                            <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-4 0H7m-2 0h2m0 0V9a2 2 0 012-2h6a2 2 0 012 2v12"/>
-                                        </svg>
-                                    </div>
+                                    
                                     <h3 class="text-lg font-bold text-white mb-1">{{ $gasolinera->nombre }}</h3>
                                     <p class="text-sm text-gray-300">{{ $gasolinera->ubicacion }}</p>
                                 </div>
@@ -189,7 +181,7 @@
                 </div>
                 
                 <div x-show="!cargandoOperadores" class="flex justify-center">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 max-w-2xl w-full">
                         <template x-for="operador in operadores" :key="operador.id">
                             <div class="gasolinera-card bg-black border-2 border-black-200 hover:border-blue-400 rounded-lg p-4 cursor-pointer transition-all duration-200" @click="seleccionarOperador(operador)">
                                 <div class="text-center">
@@ -258,10 +250,7 @@
                 </form>
             </div>
 
-            <!-- Link al Admin (discreto) -->
-            <div class="text-center mt-4">
-                <a href="/admin" class="text-xs text-gray-400 hover:text-gray-600">Panel Administrativo</a>
-            </div>
+         
         </div>
     </div>
 </body>
