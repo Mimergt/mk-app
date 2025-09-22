@@ -18,7 +18,10 @@ class Turno extends Model
         'venta_credito',
         'venta_tarjetas',
         'venta_efectivo',
-        'venta_descuentos'
+        'venta_descuentos',
+        'precio_super',
+        'precio_regular',
+        'precio_diesel'
     ];
 
     protected $casts = [
@@ -30,7 +33,10 @@ class Turno extends Model
         'venta_credito' => 'decimal:2',
         'venta_tarjetas' => 'decimal:2',
         'venta_efectivo' => 'decimal:2',
-        'venta_descuentos' => 'decimal:2'
+        'venta_descuentos' => 'decimal:2',
+        'precio_super' => 'decimal:4',
+        'precio_regular' => 'decimal:4',
+        'precio_diesel' => 'decimal:4'
     ];
 
     public function gasolinera()

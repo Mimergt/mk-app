@@ -44,6 +44,13 @@ class GenerateTurnos extends Command
             'venta_descuentos' => 0.00
         ];
 
+        // Precios base de combustibles (variarán por día)
+        $preciosBase = [
+            'precio_super' => 37.5000,
+            'precio_regular' => 33.5000,
+            'precio_diesel' => 28.5000
+        ];
+
 
         // Lecturas base de bombas del turno 305
         $bombasBase = [
@@ -95,6 +102,9 @@ class GenerateTurnos extends Command
                 // Variaciones en ventas (±30%)
                 $variacion = 1 + (rand(-30, 30) / 100);
 
+                // Variaciones en precios de combustibles (±5%)
+                $variacionPrecio = 1 + (rand(-5, 5) / 100);
+
                 $turno = Turno::create([
                     'gasolinera_id' => $gasolineraId,
                     'user_id' => $config['user_id'],
@@ -108,6 +118,9 @@ class GenerateTurnos extends Command
                     'venta_tarjetas' => round($ventasBase['venta_tarjetas'] * $variacion, 2),
                     'venta_efectivo' => round($ventasBase['venta_efectivo'] * $variacion, 2),
                     'venta_descuentos' => round($ventasBase['venta_descuentos'] * $variacion, 2),
+                    'precio_super' => round($preciosBase['precio_super'] * $variacionPrecio, 4),
+                    'precio_regular' => round($preciosBase['precio_regular'] * $variacionPrecio, 4),
+                    'precio_diesel' => round($preciosBase['precio_diesel'] * $variacionPrecio, 4),
                     'created_at' => $horaInicio,
                     'updated_at' => $horaFin
                 ]);
