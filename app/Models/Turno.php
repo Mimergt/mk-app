@@ -21,7 +21,8 @@ class Turno extends Model
         'venta_descuentos',
         'precio_super',
         'precio_regular',
-        'precio_diesel'
+        'precio_diesel',
+        'ventas_netas_turno'
     ];
 
     protected $casts = [
@@ -36,7 +37,8 @@ class Turno extends Model
         'venta_descuentos' => 'decimal:2',
         'precio_super' => 'decimal:4',
         'precio_regular' => 'decimal:4',
-        'precio_diesel' => 'decimal:4'
+        'precio_diesel' => 'decimal:4',
+        'ventas_netas_turno' => 'decimal:2'
     ];
 
     public function gasolinera()
@@ -57,5 +59,24 @@ class Turno extends Model
     public function bombaDatos()
     {
         return $this->hasMany(TurnoBombaDatos::class);
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            $model->calculateVentasNetasTurno();
+        });
+    }
+
+    private function calculateVentasNetasTurno()
+    {
+        $venta_credito = $this->venta_credito ?? 0;
+        $venta_tarjetas = $this->venta_tarjetas ?? 0;
+        $venta_efectivo = $this->venta_efectivo ?? 0;
+        $venta_descuentos = $this->venta_descuentos ?? 0;
+
+        $this->ventas_netas_turno = $venta_credito + $venta_tarjetas + $venta_efectivo - $venta_descuentos;
     }
 }
