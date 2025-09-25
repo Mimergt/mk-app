@@ -45,7 +45,7 @@ class CalculateExistingData extends Command
         }
         $bar->finish();
 
-        $this->info("\nCalculating galones vendidos and ventas for turno_bomba_datos...");
+        $this->info("\nCalculating galones vendidos, resultado_cc and ventas for turno_bomba_datos...");
         $bombaDatos = TurnoBombaDatos::orderBy('bomba_id')->orderBy('fecha_turno')->get();
         $bar = $this->output->createProgressBar($bombaDatos->count());
 
@@ -59,10 +59,12 @@ class CalculateExistingData extends Command
                 $registro->galones_vendidos_super = max(0, $registro->galonaje_super - $previousReading->galonaje_super);
                 $registro->galones_vendidos_regular = max(0, $registro->galonaje_regular - $previousReading->galonaje_regular);
                 $registro->galones_vendidos_diesel = max(0, $registro->galonaje_diesel - $previousReading->galonaje_diesel);
+                $registro->resultado_cc = max(0, $registro->lectura_cc - $previousReading->lectura_cc);
             } else {
                 $registro->galones_vendidos_super = 0;
                 $registro->galones_vendidos_regular = 0;
                 $registro->galones_vendidos_diesel = 0;
+                $registro->resultado_cc = 0;
             }
 
             if ($registro->turno) {

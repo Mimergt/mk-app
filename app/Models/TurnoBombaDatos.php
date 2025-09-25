@@ -16,6 +16,7 @@ class TurnoBombaDatos extends Model
         'galonaje_regular',
         'galonaje_diesel',
         'lectura_cc',
+        'resultado_cc',
         'fotografia',
         'observaciones',
         'fecha_turno',
@@ -32,6 +33,7 @@ class TurnoBombaDatos extends Model
         'galonaje_regular' => 'decimal:3',
         'galonaje_diesel' => 'decimal:3',
         'lectura_cc' => 'decimal:3',
+        'resultado_cc' => 'decimal:3',
         'fecha_turno' => 'datetime',
         'galones_vendidos_super' => 'decimal:3',
         'galones_vendidos_regular' => 'decimal:3',
@@ -70,6 +72,7 @@ class TurnoBombaDatos extends Model
 
         static::saving(function ($model) {
             $model->calculateGalonesVendidos();
+            $model->calculateResultadoCc();
             $model->calculateVentasGalones();
         });
     }
@@ -94,6 +97,22 @@ class TurnoBombaDatos extends Model
         if ($this->galones_vendidos_super < 0) $this->galones_vendidos_super = 0;
         if ($this->galones_vendidos_regular < 0) $this->galones_vendidos_regular = 0;
         if ($this->galones_vendidos_diesel < 0) $this->galones_vendidos_diesel = 0;
+    }
+
+    private function calculateResultadoCc()
+    {
+        $previousReading = static::where('bomba_id', $this->bomba_id)
+            ->where('fecha_turno', '<', $this->fecha_turno)
+            ->orderBy('fecha_turno', 'desc')
+            ->first();
+
+        if ($previousReading) {
+            $this->resultado_cc = $this->lectura_cc - $previousReading->lectura_cc;
+        } else {
+            $this->resultado_cc = 0;
+        }
+
+        if ($this->resultado_cc < 0) $this->resultado_cc = 0;
     }
 
     private function calculateVentasGalones()
