@@ -60,9 +60,9 @@ class CalculateExistingData extends Command
                 $registro->galones_vendidos_regular = max(0, $registro->galonaje_regular - $previousReading->galonaje_regular);
                 $registro->galones_vendidos_diesel = max(0, $registro->galonaje_diesel - $previousReading->galonaje_diesel);
             } else {
-                $registro->galones_vendidos_super = $registro->galonaje_super;
-                $registro->galones_vendidos_regular = $registro->galonaje_regular;
-                $registro->galones_vendidos_diesel = $registro->galonaje_diesel;
+                $registro->galones_vendidos_super = 0;
+                $registro->galones_vendidos_regular = 0;
+                $registro->galones_vendidos_diesel = 0;
             }
 
             if ($registro->turno) {

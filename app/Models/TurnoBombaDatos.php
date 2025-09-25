@@ -86,9 +86,9 @@ class TurnoBombaDatos extends Model
             $this->galones_vendidos_regular = $this->galonaje_regular - $previousReading->galonaje_regular;
             $this->galones_vendidos_diesel = $this->galonaje_diesel - $previousReading->galonaje_diesel;
         } else {
-            $this->galones_vendidos_super = $this->galonaje_super;
-            $this->galones_vendidos_regular = $this->galonaje_regular;
-            $this->galones_vendidos_diesel = $this->galonaje_diesel;
+            $this->galones_vendidos_super = 0;
+            $this->galones_vendidos_regular = 0;
+            $this->galones_vendidos_diesel = 0;
         }
 
         if ($this->galones_vendidos_super < 0) $this->galones_vendidos_super = 0;
