@@ -203,258 +203,523 @@
         @if($turnoActual)
             <!-- Estado: Turno Activo -->
             <div class="space-y-3">
-                <!-- Grid de Bombas -->
+                <!-- Grid de Combustibles -->
                 @if($bombas && count($bombas) > 0)
                     <div class="space-y-3">
-                        @foreach($bombas as $nombreBomba => $bombaData)
-                            <div x-data="{ bombaExpanded: false }" 
-                                 data-bomba="{{ $nombreBomba }}"
-                                 class="bg-black/40 backdrop-blur-sm rounded-xl border border-white/20 shadow-lg overflow-hidden p-2 w-full">
-                                <!-- Header de la bomba (siempre visible) -->
-                                <div class="p-3 cursor-pointer hover:bg-white/5 transition-all duration-200" 
-                                     @click="bombaExpanded = !bombaExpanded; console.log('{{ $nombreBomba }}:', bombaExpanded)">
+                        @foreach(['Super', 'Regular', 'Diesel'] as $tipoCombustible)
+                            @php
+                                $colorFondo = $tipoCombustible === 'Super' ? 'from-red-600/30 to-red-500/20' : ($tipoCombustible === 'Regular' ? 'from-orange-600/30 to-orange-500/20' : 'from-blue-600/30 to-blue-500/20');
+                                $colorBorde = $tipoCombustible === 'Super' ? 'border-red-400/50' : ($tipoCombustible === 'Regular' ? 'border-orange-400/50' : 'border-blue-400/50');
+                                $emoji = $tipoCombustible === 'Super' ? '🔴' : ($tipoCombustible === 'Regular' ? '🟡' : '🔵');
+                            @endphp
+                            <div x-data="{ combustibleExpanded: false }"
+                                 data-combustible="{{ $tipoCombustible }}"
+                                 class="bg-gradient-to-br {{ $colorFondo }} backdrop-blur-sm rounded-xl border-2 {{ $colorBorde }} shadow-lg overflow-hidden p-2 w-full">
+                                <!-- Header del combustible (siempre visible) -->
+                                <div class="p-3 cursor-pointer hover:bg-white/5 transition-all duration-200"
+                                     @click="combustibleExpanded = !combustibleExpanded">
                                     <div class="flex items-center justify-between">
-                                        <h3 class="text-sm font-bold flex items-center flex-1 mr-2">
-                                            <div class="w-4 h-4 bg-green-500 rounded-full mr-2 pulse-dot flex-shrink-0"></div>
-                                            <span class="truncate">{{ $nombreBomba }}</span>
-                                            <span class="ml-2 text-xs px-2 py-1 rounded-full flex-shrink-0 
-                                                {{ $bombaData['estado'] === 'activa' ? 'bg-green-500/20 text-green-300' : 
-                                                   ($bombaData['estado'] === 'inactiva' ? 'bg-red-500/20 text-red-300' : 'bg-yellow-500/20 text-yellow-300') }}">
-                                                {{ ucfirst($bombaData['estado']) }}
-                                            </span>
+                                        <h3 class="text-lg font-bold flex items-center flex-1 mr-2">
+                                            <span class="mr-3 text-2xl">{{ $emoji }}</span>
+                                            <span class="truncate">{{ $tipoCombustible }}</span>
                                         </h3>
                                         <!-- Indicador de expansión -->
                                         <div class="flex items-center space-x-2 flex-shrink-0">
-                                            <svg class="w-4 h-4 transition-transform duration-300" 
-                                                 :class="bombaExpanded ? 'rotate-180' : 'rotate-0'"
+                                            <svg class="w-5 h-5 transition-transform duration-300"
+                                                 :class="combustibleExpanded ? 'rotate-180' : 'rotate-0'"
                                                  fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                                             </svg>
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Contenido colapsable -->
-                                <div x-show="bombaExpanded" 
+                                <div x-show="combustibleExpanded"
                                      x-cloak
-                                     class="border-t border-white/"
+                                     class="border-t border-white/20"
                                      style="display: none;">
-                                    <form action="{{ route('turnos.bomba.guardar-grupo', $nombreBomba) }}" method="POST" enctype="multipart/form-data" class="p-3">
-                                        @csrf
-                                        
-                                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mb-4">
-                                            @foreach(['Super', 'Regular', 'Diesel', 'CC'] as $tipo)
-                                                @if(isset($bombaData['combustibles'][$tipo]))
-                                                    @php $combustible = $bombaData['combustibles'][$tipo]; @endphp
-                                                    <div class="@if($tipo === 'Diesel')bg-white/20 @endif @if($tipo === 'Super') bg-red-500/30 @endif @if($tipo === 'Regular')bg-yellow-500/70 @endif @if($tipo === 'CC')bg-black/50 rounded-xl p-3 border-2 border-purple-400/60 shadow-lg ring-2 ring-purple-300/30 @else rounded-xl p-3 border border-white/10 shadow-sm @endif">
-                                                        <div class="flex items-center justify-between mb-2">
-                                                            <h4 class="text-sm font-bold flex items-center @if($tipo === 'CC') text-purple-200 bg-purple-500/20 px-2 py-1 rounded-lg @endif">
-                                                                <span class="mr-2 text-base @if($tipo === 'CC') text-lg @endif">
-                                                                    @if($tipo === 'Super') 🔴
-                                                                    @elseif($tipo === 'CC') 🟣
-                                                                    @elseif($tipo === 'Regular') 🟡  
-                                                                    @elseif($tipo === 'Diesel') 🔵
-                                                                    @else 🟣
-                                                                    @endif
-                                                                </span>
-                                                                @if($tipo === 'CC')
-                                                                    <span class="font-extrabold text-purple-100">CC - CONTEO</span>
-                                                                @else
-                                                                    {{ $tipo }}
-                                                                @endif
-                                                            </h4>
-                                                            @if($tipo === 'CC')
-                                                                <span class="text-xs font-bold bg-gradient-to-r from-purple-500/30 to-purple-400/20 text-purple-200 px-3 py-1 rounded-full border border-purple-400/50 shadow-sm">📊 SOLO LECTURA</span> 
-                                                            @else
-                                                                <span class="text-xs font-bold bg-white/10 px-2 py-1 rounded-full">Q{{ number_format($combustible['precio'], 2) }}</span> 
-                                                            @endif
-                                                        </div>
-                                                        
-                                                        <div class="space-y-2">
-                                                            <div>
-                                                                <label class="block text-xs font-medium text-white/70 mb-1">
-                                                                    Actual:
-                                                                </label>
-                                                                <div class="bg-gray-700/50 rounded-lg p-2 text-center">
-                                                                    <span class="text-xs font-mono font-bold">{{ number_format($combustible['lectura_actual'], 3) }}</span>
-                                                                    @if($tipo === 'CC')
-                                                                        <span class="text-xs text-purple-300 ml-1 font-bold">unidades 📊</span> 
-                                                                    @else
-                                                                        <span class="text-xs text-white/60 ml-1">gal</span> 
-                                                                    @endif
-                                                                </div>
-                                                                <div class="text-xs text-white/50 mt-1 text-center">
-                                                                    {{ $combustible['fecha_lectura'] }}
-                                                                </div>
-                                                            </div>
-                                                            
-                                                            <div class="@if($tipo === 'CC') bg-gradient-to-br from-purple-600/20 to-purple-500/10 border-3 border-purple-400/70 shadow-lg ring-1 ring-purple-300/40 @else bg-red-500/10 border-2 border-orange-400/50 @endif rounded-lg p-3">
-                                                                <label class="block text-sm font-bold @if($tipo === 'CC') text-purple-200 @else text-orange-300 @endif mb-2 text-center">
-                                                                    @if($tipo === 'CC')
-                                                                        📊 Nuevo valor lectura - CC (CONTEO) 
-                                                                    @else
-                                                                        📝 Nuevo valor galones - {{ $tipo }} 
-                                                                    @endif
-                                                                </label>
-                                                                <input type="number" step="0.001" inputmode="decimal" pattern="[0-9]+(\.[0-9]{1,3})?" 
-                                                                       name="lectura_{{ $bombaData['id'] }}_{{ strtolower($tipo) }}" 
-                                                                       min="{{ $combustible['lectura_actual'] + 0.001 }}"
-                                                                       class="w-full px-3 py-3 @if($tipo === 'CC') bg-gradient-to-r from-purple-500/30 to-purple-400/20 border-3 border-purple-300/80 text-purple-100 placeholder-purple-200/80 focus:ring-purple-300/60 focus:border-purple-200 hover:bg-purple-400/40 shadow-lg font-extrabold @else bg-white border-2 border-orange-400/70 text-black placeholder-black-400/50 focus:ring-orange-400/50 focus:border-orange-300 hover:bg-orange-400/30 @endif rounded-lg font-bold focus:outline-none focus:ring-4 font-mono text-sm text-center transition-all duration-200"
-                                                                       placeholder="{{ number_format($combustible['lectura_actual'] + 1, 3) }}">
-                                                                <input type="hidden" name="bomba_id" value="{{ $bombaData['id'] }}">
-                                                                <input type="hidden" name="tipo_combustible_{{ strtolower($tipo) }}" value="{{ strtolower($tipo) }}">
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                @endif
-                                            @endforeach
-                                        </div>
-                                        
-                                        <!-- Campo de Fotografía -->
-                                        <div class="mt-4 bg-yellow-500/10 border-2 border-yellow-400/50 rounded-xl p-4" 
-                                             data-foto-url="{{ $bombaData['fotografia_url'] ?? '' }}" 
-                                             data-tiene-foto="{{ $bombaData['tiene_fotografia'] ? '1' : '0' }}"
-                                             x-data="fotografiaComponent()" 
-                                             x-init="initFotografia($el.dataset.fotoUrl, $el.dataset.tieneFoto === '1')">
-                                            
-                                            <h4 class="text-sm font-bold text-yellow-300 mb-3 flex items-center">
-                                                📸 Fotografía de la Bomba (Requerida)
-                                            </h4>
-                                            
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <!-- Columna izquierda: Campo de subida -->
-                                                <div class="space-y-3">
-                                                    <input type="file" name="fotografia_bomba" accept="image/*" capture="environment" 
-                                                           @change="handleFileChange($event)"
-                                                           class="w-full px-3 py-3 bg-yellow-400/20 border-2 border-yellow-400/70 text-yellow-100 rounded-lg font-bold focus:outline-none focus:ring-4 focus:ring-yellow-400/50 focus:border-yellow-300 hover:bg-yellow-400/30 transition-all duration-200"
-                                                           :required="!showPreview"
-                                                           :disabled="processing"
-                                                           id="file-input-{{ $nombreBomba }}">
-                                                    
-                                                    <!-- Indicador de procesamiento -->
-                                                    <div x-show="processing" class="text-center py-2">
-                                                        <div class="text-yellow-300 text-sm">
-                                                            🔄 Comprimiendo imagen... Por favor espere
-                                                        </div>
-                                                    </div>
-                                                    
-                                                    <p class="text-xs text-yellow-200/70 text-center">
-                                                        📱 Toma una foto clara de la bomba antes de guardar los valores<br>
-                                                        <span class="text-yellow-300/60">Las imágenes se comprimen automáticamente a 1280px para optimizar el almacenamiento</span>
-                                                    </p>
-                                                    
-                                                    <!-- Botones de control -->
-                                                    <div class="flex space-x-2" x-show="showPreview">
-                                                        <button type="button" @click="resetPhoto()" x-show="originalUrl !== ''" 
-                                                                class="text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-3 py-1 rounded-lg transition-all duration-200">
-                                                            🔄 Restaurar original
-                                                        </button>
-                                                        <button type="button" @click="removePhoto()" 
-                                                                class="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-3 py-1 rounded-lg transition-all duration-200">
-                                                            🗑️ Quitar foto
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                
-                                                <!-- Columna derecha: Miniatura clickeable -->
-                                                <div class="space-y-2" x-show="showPreview">
-                                                    <div class="text-xs font-bold text-yellow-300 text-center">Foto cargada:</div>
-                                                    <div class="relative bg-black/20 rounded-lg overflow-hidden border-2 border-yellow-400/30 cursor-pointer hover:border-yellow-300 transition-all duration-200" 
-                                                         @click="openModal()">
-                                                        <img :src="previewUrl" alt="Miniatura de fotografía" class="w-full h-20 object-cover">
-                                                        <div class="absolute inset-0 bg-black/0 hover:bg-black/10 transition-all duration-200 flex items-center justify-center">
-                                                            <div class="bg-black/60 text-white px-2 py-1 rounded text-xs opacity-0 hover:opacity-100 transition-opacity duration-200">
-                                                                👁️ Ver imagen completa
-                                                            </div>
-                                                        </div>
-                                                        <div class="absolute top-1 right-1">
-                                                            <button type="button" @click.stop="removePhoto()" 
-                                                                    class="bg-red-500/80 hover:bg-red-600 text-white w-5 h-5 rounded-full text-xs flex items-center justify-center">
-                                                                ✕
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                    <div class="text-xs text-center">
-                                                        <span x-show="originalUrl !== '' && previewUrl !== originalUrl" class="text-yellow-200/70">
-                                                            📸 Nueva foto seleccionada
-                                                        </span>
-                                                        <span x-show="originalUrl !== '' && previewUrl === originalUrl" class="text-green-300/70">
-                                                            ✅ Foto guardada anteriormente
-                                                        </span>
-                                                        <div class="text-yellow-200/50 mt-1">
-                                                            👁️ Haz click para ver en grande
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                    <div class="p-3 space-y-3">
+                                        @foreach($bombas as $nombreBomba => $bombaData)
+                                            @if(isset($bombaData['combustibles'][$tipoCombustible]))
+                                                @php
+                                                    $combustible = $bombaData['combustibles'][$tipoCombustible];
+                                                    $gasolinera = auth()->user()->gasolinera;
+                                                @endphp
+                                                <form action="{{ route('turnos.bomba.guardar-grupo', $nombreBomba) }}" method="POST" enctype="multipart/form-data"
+                                                      class="bg-black/30 rounded-lg p-3 border border-white/20">
+                                                    @csrf
+                                                    <input type="hidden" name="tipo_combustible" value="{{ strtolower($tipoCombustible) }}">
+                                                    <input type="hidden" name="bomba_id" value="{{ $bombaData['id'] }}">
 
-                                            <!-- Modal para imagen completa - Dentro del contexto de Alpine.js -->
-                                            <div x-show="modalOpen" 
-                                                 x-transition:enter="transition ease-out duration-300"
-                                                 x-transition:enter-start="opacity-0"
-                                                 x-transition:enter-end="opacity-100"
-                                                 x-transition:leave="transition ease-in duration-200"
-                                                 x-transition:leave-start="opacity-100"
-                                                 x-transition:leave-end="opacity-0"
-                                                 @click.self="closeModal()"
-                                                 @keydown.escape.window="closeModal()"
-                                                 class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm">
-                                                
-                                                <!-- Contenedor scrolleable que ocupa toda la pantalla -->
-                                                <div class="h-full w-full overflow-y-auto flex items-start justify-center p-4">
-                                                    <div class="w-full max-w-4xl my-8">
-                                                        <div class="bg-white rounded-lg shadow-2xl overflow-hidden">
-                                                            <!-- Header del modal con botón de cerrar -->
-                                                            <div class="flex items-center justify-between p-4 bg-gray-100 border-b sticky top-0">
-                                                                <h3 class="text-lg font-semibold text-gray-800">
-                                                                    📸 Fotografía de {{ $nombreBomba }}
-                                                                </h3>
-                                                                <button type="button" @click="closeModal()" 
-                                                                        class="text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full p-3 transition-all duration-200 text-xl font-bold">
-                                                                    ✕
-                                                                </button>
+                                                    <div class="flex items-center justify-between mb-3">
+                                                        <h4 class="text-sm font-bold flex items-center">
+                                                            <div class="w-3 h-3 {{ $bombaData['estado'] === 'activa' ? 'bg-green-500' : 'bg-red-500' }} rounded-full mr-2 {{ $bombaData['estado'] === 'activa' ? 'pulse-dot' : '' }}"></div>
+                                                            {{ $nombreBomba }}
+                                                        </h4>
+                                                        <span class="text-xs font-bold bg-white/10 px-2 py-1 rounded-full">Q{{ number_format($combustible['precio'], 2) }}</span>
+                                                    </div>
+
+                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
+                                                        <!-- Lectura Anterior -->
+                                                        <div>
+                                                            <label class="block text-xs font-medium text-white/70 mb-1">Lectura Anterior:</label>
+                                                            <div class="bg-gray-700/50 rounded-lg p-2 text-center">
+                                                                <span class="text-xs font-mono font-bold">{{ number_format($combustible['lectura_actual'], 3) }}</span>
+                                                                <span class="text-xs text-white/60 ml-1">gal</span>
                                                             </div>
-                                                            
-                                                            <!-- Imagen completa -->
-                                                            <div class="p-4 bg-gray-50">
-                                                                <img :src="previewUrl" :alt="'Fotografía completa de {{ $nombreBomba }}'" 
-                                                                     class="w-full h-auto object-contain rounded-lg shadow-lg">
+                                                            <div class="text-xs text-white/50 mt-1 text-center">{{ $combustible['fecha_lectura'] }}</div>
+                                                        </div>
+
+                                                        <!-- Nueva Lectura -->
+                                                        <div>
+                                                            <label class="block text-xs font-bold text-orange-300 mb-1">📝 Nueva Lectura:</label>
+                                                            <input type="number" step="0.001" inputmode="decimal" pattern="[0-9]+(\.[0-9]{1,3})?"
+                                                                   name="lectura_{{ $bombaData['id'] }}_{{ strtolower($tipoCombustible) }}"
+                                                                   min="{{ $combustible['lectura_actual'] + 0.001 }}"
+                                                                   x-data="{ valor: '' }"
+                                                                   @input="$dispatch('lectura-actualizada-{{ $bombaData['id'] }}-{{ strtolower($tipoCombustible) }}', { valor: $event.target.value })"
+                                                                   class="w-full px-3 py-2 bg-white border-2 border-orange-400/70 text-black placeholder-gray-400 focus:ring-orange-400/50 focus:border-orange-300 hover:bg-orange-50 rounded-lg font-bold focus:outline-none focus:ring-2 font-mono text-sm text-center transition-all duration-200"
+                                                                   placeholder="{{ number_format($combustible['lectura_actual'] + 1, 3) }}">
+                                                        </div>
+
+                                                        <!-- Galones Consumidos -->
+                                                        <div x-data="{
+                                                            lecturaAnterior: {{ $combustible['lectura_actual'] }},
+                                                            lecturaNueva: 0,
+                                                            galones: 0
+                                                        }"
+                                                        @lectura-actualizada-{{ $bombaData['id'] }}-{{ strtolower($tipoCombustible) }}.window="lecturaNueva = parseFloat($event.detail.valor) || 0; galones = lecturaNueva - lecturaAnterior">
+                                                            <label class="block text-xs font-medium text-green-300 mb-1">💧 Galones Consumidos:</label>
+                                                            <div class="bg-green-600/20 border-2 border-green-400/50 rounded-lg p-2 text-center">
+                                                                <span class="text-xs font-mono font-bold text-green-200" x-text="galones > 0 ? galones.toFixed(3) : '0.000'"></span>
+                                                                <span class="text-xs text-green-300 ml-1">gal</span>
                                                             </div>
-                                                            
-                                                            <!-- Footer con botón cerrar -->
-                                                            <div class="flex items-center justify-center p-4 bg-gray-100 border-t sticky bottom-0">
-                                                                <button type="button" @click="closeModal()" 
-                                                                        class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-bold transition-all duration-200">
-                                                                    Cerrar
-                                                                </button>
+                                                        </div>
+
+                                                        <!-- Venta Total -->
+                                                        <div x-data="{
+                                                            precio: {{ $combustible['precio'] }},
+                                                            lecturaAnterior: {{ $combustible['lectura_actual'] }},
+                                                            lecturaNueva: 0,
+                                                            venta: 0
+                                                        }"
+                                                        @lectura-actualizada-{{ $bombaData['id'] }}-{{ strtolower($tipoCombustible) }}.window="lecturaNueva = parseFloat($event.detail.valor) || 0; venta = (lecturaNueva - lecturaAnterior) * precio">
+                                                            <label class="block text-xs font-medium text-yellow-300 mb-1">💰 Venta:</label>
+                                                            <div class="bg-yellow-600/20 border-2 border-yellow-400/50 rounded-lg p-2 text-center">
+                                                                <span class="text-xs font-mono font-bold text-yellow-200">Q<span x-text="venta > 0 ? venta.toFixed(2) : '0.00'"></span></span>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </div>
-                                                            </button>
+
+                                                    <!-- Campo de Fotografía -->
+                                                    <div class="bg-yellow-500/10 border-2 border-yellow-400/50 rounded-xl p-3 mb-3"
+                                                         data-foto-url="{{ $bombaData['fotografia_url'] ?? '' }}"
+                                                         data-tiene-foto="{{ $bombaData['tiene_fotografia'] ? '1' : '0' }}"
+                                                         x-data="fotografiaComponent()"
+                                                         x-init="initFotografia($el.dataset.fotoUrl, $el.dataset.tieneFoto === '1')">
+
+                                                        <h5 class="text-xs font-bold text-yellow-300 mb-2 flex items-center">
+                                                            📸 Fotografía de la Bomba
+                                                        </h5>
+
+                                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                            <!-- Columna izquierda: Campo de subida -->
+                                                            <div class="space-y-2">
+                                                                <input type="file" name="fotografia_bomba" accept="image/*" capture="environment"
+                                                                       @change="handleFileChange($event)"
+                                                                       class="w-full px-2 py-2 bg-yellow-400/20 border-2 border-yellow-400/70 text-yellow-100 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-300 hover:bg-yellow-400/30 transition-all duration-200"
+                                                                       :required="!showPreview"
+                                                                       :disabled="processing"
+                                                                       id="file-input-{{ $nombreBomba }}-{{ strtolower($tipoCombustible) }}">
+
+                                                                <div x-show="processing" class="text-center py-1">
+                                                                    <div class="text-yellow-300 text-xs">🔄 Comprimiendo...</div>
+                                                                </div>
+
+                                                                <p class="text-xs text-yellow-200/70 text-center">
+                                                                    📱 Toma una foto clara de la bomba
+                                                                </p>
+
+                                                                <div class="flex space-x-2" x-show="showPreview">
+                                                                    <button type="button" @click="resetPhoto()" x-show="originalUrl !== ''"
+                                                                            class="text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-2 py-1 rounded-lg transition-all duration-200">
+                                                                        🔄 Restaurar
+                                                                    </button>
+                                                                    <button type="button" @click="removePhoto()"
+                                                                            class="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-2 py-1 rounded-lg transition-all duration-200">
+                                                                        🗑️ Quitar
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Columna derecha: Miniatura -->
+                                                            <div class="space-y-2" x-show="showPreview">
+                                                                <div class="text-xs font-bold text-yellow-300 text-center">Foto cargada:</div>
+                                                                <div class="relative bg-black/20 rounded-lg overflow-hidden border-2 border-yellow-400/30 cursor-pointer hover:border-yellow-300 transition-all duration-200"
+                                                                     @click="openModal()">
+                                                                    <img :src="previewUrl" alt="Miniatura" class="w-full h-16 object-cover">
+                                                                    <div class="absolute inset-0 bg-black/0 hover:bg-black/10 transition-all duration-200 flex items-center justify-center">
+                                                                        <div class="bg-black/60 text-white px-2 py-1 rounded text-xs opacity-0 hover:opacity-100 transition-opacity duration-200">
+                                                                            👁️ Ver
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Modal para imagen completa -->
+                                                        <div x-show="modalOpen"
+                                                             x-transition:enter="transition ease-out duration-300"
+                                                             x-transition:enter-start="opacity-0"
+                                                             x-transition:enter-end="opacity-100"
+                                                             x-transition:leave="transition ease-in duration-200"
+                                                             x-transition:leave-start="opacity-100"
+                                                             x-transition:leave-end="opacity-0"
+                                                             @click.self="closeModal()"
+                                                             @keydown.escape.window="closeModal()"
+                                                             class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm">
+
+                                                            <div class="h-full w-full overflow-y-auto flex items-start justify-center p-4">
+                                                                <div class="w-full max-w-4xl my-8">
+                                                                    <div class="bg-white rounded-lg shadow-2xl overflow-hidden">
+                                                                        <div class="flex items-center justify-between p-4 bg-gray-100 border-b sticky top-0">
+                                                                            <h3 class="text-lg font-semibold text-gray-800">
+                                                                                📸 {{ $nombreBomba }} - {{ $tipoCombustible }}
+                                                                            </h3>
+                                                                            <button type="button" @click="closeModal()"
+                                                                                    class="text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full p-3 transition-all duration-200 text-xl font-bold">
+                                                                                ✕
+                                                                            </button>
+                                                                        </div>
+
+                                                                        <div class="p-4 bg-gray-50">
+                                                                            <img :src="previewUrl" :alt="'Fotografía {{ $nombreBomba }}'"
+                                                                                 class="w-full h-auto object-contain rounded-lg shadow-lg">
+                                                                        </div>
+
+                                                                        <div class="flex items-center justify-center p-4 bg-gray-100 border-t sticky bottom-0">
+                                                                            <button type="button" @click="closeModal()"
+                                                                                    class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-bold transition-all duration-200">
+                                                                                Cerrar
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Botón Guardar al final -->
-                                        <div class="m-4 text-center">
-                                            <button type="submit" 
-                                                    :disabled="processing"
-                                                    class="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-xl text-sm font-bold transition-all duration-200 transform hover:scale-105 w-full shadow-lg">
-                                                💾 Guardar {{ $nombreBomba }}
-                                                <span x-show="processing" class="ml-2">🔄</span>
-                                            </button>
-                                        </div>
-                                    </form>
+
+                                                    <!-- Botón Guardar -->
+                                                    <div class="text-center">
+                                                        <button type="submit"
+                                                                :disabled="processing"
+                                                                class="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 transform hover:scale-105 w-full shadow-lg">
+                                                            💾 Guardar {{ $nombreBomba }} - {{ $tipoCombustible }}
+                                                            <span x-show="processing" class="ml-2">🔄</span>
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            @endif
+                                        @endforeach
+                                    </div>
                                 </div>
-
-                                <!-- Modal para imagen completa - FUERA DEL DIV DE LA BOMBA -->
                             </div>
                         @endforeach
                     </div>
+
+                    <!-- TAREA 2: Bloque de CC -->
+                    <div x-data="{ ccExpanded: false }"
+                         data-seccion="cc"
+                         class="bg-gradient-to-br from-purple-600/30 to-purple-500/20 backdrop-blur-sm rounded-xl border-2 border-purple-400/50 shadow-lg overflow-hidden p-2 w-full">
+                        <!-- Header de CC -->
+                        <div class="p-3 cursor-pointer hover:bg-white/5 transition-all duration-200"
+                             @click="ccExpanded = !ccExpanded">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-bold flex items-center flex-1 mr-2">
+                                    <span class="mr-3 text-2xl">🟣</span>
+                                    <span class="truncate">CC - Conteo de Combustible</span>
+                                </h3>
+                                <div class="flex items-center space-x-2 flex-shrink-0">
+                                    <svg class="w-5 h-5 transition-transform duration-300"
+                                         :class="ccExpanded ? 'rotate-180' : 'rotate-0'"
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Contenido colapsable de CC -->
+                        <div x-show="ccExpanded"
+                             x-cloak
+                             class="border-t border-white/20"
+                             style="display: none;">
+                            <div class="p-3 space-y-3">
+                                @foreach($bombas as $nombreBomba => $bombaData)
+                                    @if(isset($bombaData['combustibles']['CC']))
+                                        @php $combustibleCC = $bombaData['combustibles']['CC']; @endphp
+                                        <form action="{{ route('turnos.bomba.guardar-grupo', $nombreBomba) }}" method="POST" enctype="multipart/form-data"
+                                              class="bg-black/30 rounded-lg p-3 border border-purple-400/30">
+                                            @csrf
+                                            <input type="hidden" name="tipo_combustible" value="cc">
+                                            <input type="hidden" name="bomba_id" value="{{ $bombaData['id'] }}">
+
+                                            <div class="flex items-center justify-between mb-3">
+                                                <h4 class="text-sm font-bold flex items-center text-purple-200">
+                                                    <div class="w-3 h-3 {{ $bombaData['estado'] === 'activa' ? 'bg-green-500' : 'bg-red-500' }} rounded-full mr-2 {{ $bombaData['estado'] === 'activa' ? 'pulse-dot' : '' }}"></div>
+                                                    {{ $nombreBomba }} - CC
+                                                </h4>
+                                                <span class="text-xs font-bold bg-purple-500/20 px-2 py-1 rounded-full text-purple-200">📊 Solo Lectura</span>
+                                            </div>
+
+                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                                                <!-- Lectura Anterior CC -->
+                                                <div>
+                                                    <label class="block text-xs font-medium text-purple-200 mb-1">Lectura Anterior CC:</label>
+                                                    <div class="bg-purple-900/30 rounded-lg p-2 text-center border border-purple-400/30">
+                                                        <span class="text-xs font-mono font-bold text-purple-100">{{ number_format($combustibleCC['lectura_actual'], 3) }}</span>
+                                                        <span class="text-xs text-purple-300 ml-1">unidades</span>
+                                                    </div>
+                                                    <div class="text-xs text-purple-200/70 mt-1 text-center">{{ $combustibleCC['fecha_lectura'] }}</div>
+                                                </div>
+
+                                                <!-- Nueva Lectura CC -->
+                                                <div>
+                                                    <label class="block text-xs font-bold text-purple-200 mb-1">📊 Nueva Lectura CC:</label>
+                                                    <input type="number" step="0.001" inputmode="decimal" pattern="[0-9]+(\.[0-9]{1,3})?"
+                                                           name="lectura_{{ $bombaData['id'] }}_cc"
+                                                           min="{{ $combustibleCC['lectura_actual'] + 0.001 }}"
+                                                           class="w-full px-3 py-2 bg-gradient-to-r from-purple-500/30 to-purple-400/20 border-2 border-purple-300/80 text-purple-100 placeholder-purple-200/80 focus:ring-purple-300/60 focus:border-purple-200 hover:bg-purple-400/40 rounded-lg font-bold focus:outline-none focus:ring-2 font-mono text-sm text-center transition-all duration-200"
+                                                           placeholder="{{ number_format($combustibleCC['lectura_actual'] + 1, 3) }}">
+                                                </div>
+                                            </div>
+
+                                            <!-- Campo de Fotografía -->
+                                            <div class="bg-yellow-500/10 border-2 border-yellow-400/50 rounded-xl p-3 mb-3"
+                                                 data-foto-url="{{ $bombaData['fotografia_url'] ?? '' }}"
+                                                 data-tiene-foto="{{ $bombaData['tiene_fotografia'] ? '1' : '0' }}"
+                                                 x-data="fotografiaComponent()"
+                                                 x-init="initFotografia($el.dataset.fotoUrl, $el.dataset.tieneFoto === '1')">
+
+                                                <h5 class="text-xs font-bold text-yellow-300 mb-2 flex items-center">
+                                                    📸 Fotografía de la Bomba
+                                                </h5>
+
+                                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                    <div class="space-y-2">
+                                                        <input type="file" name="fotografia_bomba" accept="image/*" capture="environment"
+                                                               @change="handleFileChange($event)"
+                                                               class="w-full px-2 py-2 bg-yellow-400/20 border-2 border-yellow-400/70 text-yellow-100 rounded-lg text-xs font-bold focus:outline-none focus:ring-2 focus:ring-yellow-400/50 focus:border-yellow-300 hover:bg-yellow-400/30 transition-all duration-200"
+                                                               :required="!showPreview"
+                                                               :disabled="processing"
+                                                               id="file-input-{{ $nombreBomba }}-cc">
+
+                                                        <div x-show="processing" class="text-center py-1">
+                                                            <div class="text-yellow-300 text-xs">🔄 Comprimiendo...</div>
+                                                        </div>
+
+                                                        <p class="text-xs text-yellow-200/70 text-center">
+                                                            📱 Toma una foto clara de la bomba
+                                                        </p>
+
+                                                        <div class="flex space-x-2" x-show="showPreview">
+                                                            <button type="button" @click="resetPhoto()" x-show="originalUrl !== ''"
+                                                                    class="text-xs bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 px-2 py-1 rounded-lg transition-all duration-200">
+                                                                🔄 Restaurar
+                                                            </button>
+                                                            <button type="button" @click="removePhoto()"
+                                                                    class="text-xs bg-red-500/20 hover:bg-red-500/30 text-red-300 px-2 py-1 rounded-lg transition-all duration-200">
+                                                                🗑️ Quitar
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div class="space-y-2" x-show="showPreview">
+                                                        <div class="text-xs font-bold text-yellow-300 text-center">Foto cargada:</div>
+                                                        <div class="relative bg-black/20 rounded-lg overflow-hidden border-2 border-yellow-400/30 cursor-pointer hover:border-yellow-300 transition-all duration-200"
+                                                             @click="openModal()">
+                                                            <img :src="previewUrl" alt="Miniatura" class="w-full h-16 object-cover">
+                                                            <div class="absolute inset-0 bg-black/0 hover:bg-black/10 transition-all duration-200 flex items-center justify-center">
+                                                                <div class="bg-black/60 text-white px-2 py-1 rounded text-xs opacity-0 hover:opacity-100 transition-opacity duration-200">
+                                                                    👁️ Ver
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Modal para CC -->
+                                                <div x-show="modalOpen"
+                                                     x-transition:enter="transition ease-out duration-300"
+                                                     x-transition:enter-start="opacity-0"
+                                                     x-transition:enter-end="opacity-100"
+                                                     x-transition:leave="transition ease-in duration-200"
+                                                     x-transition:leave-start="opacity-100"
+                                                     x-transition:leave-end="opacity-0"
+                                                     @click.self="closeModal()"
+                                                     @keydown.escape.window="closeModal()"
+                                                     class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm">
+
+                                                    <div class="h-full w-full overflow-y-auto flex items-start justify-center p-4">
+                                                        <div class="w-full max-w-4xl my-8">
+                                                            <div class="bg-white rounded-lg shadow-2xl overflow-hidden">
+                                                                <div class="flex items-center justify-between p-4 bg-gray-100 border-b sticky top-0">
+                                                                    <h3 class="text-lg font-semibold text-gray-800">
+                                                                        📸 {{ $nombreBomba }} - CC
+                                                                    </h3>
+                                                                    <button type="button" @click="closeModal()"
+                                                                            class="text-gray-400 hover:text-gray-600 hover:bg-gray-200 rounded-full p-3 transition-all duration-200 text-xl font-bold">
+                                                                        ✕
+                                                                    </button>
+                                                                </div>
+
+                                                                <div class="p-4 bg-gray-50">
+                                                                    <img :src="previewUrl" :alt="'Fotografía {{ $nombreBomba }}'"
+                                                                         class="w-full h-auto object-contain rounded-lg shadow-lg">
+                                                                </div>
+
+                                                                <div class="flex items-center justify-center p-4 bg-gray-100 border-t sticky bottom-0">
+                                                                    <button type="button" @click="closeModal()"
+                                                                            class="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 rounded-lg text-lg font-bold transition-all duration-200">
+                                                                        Cerrar
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <!-- Botón Guardar CC -->
+                                            <div class="text-center">
+                                                <button type="submit"
+                                                        :disabled="processing"
+                                                        class="bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 transform hover:scale-105 w-full shadow-lg">
+                                                    💾 Guardar {{ $nombreBomba }} - CC
+                                                    <span x-show="processing" class="ml-2">🔄</span>
+                                                </button>
+                                            </div>
+                                        </form>
+                                    @endif
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @endif
+
+                    <!-- TAREA 3: Bloque de Resumen con Totales -->
+                    @if($bombas && count($bombas) > 0)
+                        <div class="bg-gradient-to-br from-indigo-600/30 to-indigo-500/20 backdrop-blur-sm rounded-2xl p-6 border-2 border-indigo-400/50 shadow-2xl mb-4"
+                             x-data="resumenTotales({{ json_encode($bombas) }})"
+                             x-init="init()">
+                            <h3 class="text-2xl font-bold mb-6 text-center flex items-center justify-center">
+                                <span class="mr-3 text-3xl">📊</span>
+                                Resumen de Totales
+                            </h3>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                                <!-- Total Galones Super -->
+                                <div class="bg-red-500/20 border-2 border-red-400/50 rounded-xl p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="text-sm font-bold text-red-200 flex items-center">
+                                            <span class="mr-2">🔴</span>
+                                            Súper
+                                        </h4>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-xs text-red-200/70 mb-1">Galones:</div>
+                                        <div class="text-xl font-bold text-red-100 font-mono" x-text="totalGalonesSuper.toFixed(3)">0.000</div>
+                                        <div class="text-xs text-red-200/70 mt-2">Venta:</div>
+                                        <div class="text-lg font-bold text-red-100 font-mono">Q<span x-text="totalVentaSuper.toFixed(2)">0.00</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- Total Galones Regular -->
+                                <div class="bg-orange-500/20 border-2 border-orange-400/50 rounded-xl p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="text-sm font-bold text-orange-200 flex items-center">
+                                            <span class="mr-2">🟡</span>
+                                            Regular
+                                        </h4>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-xs text-orange-200/70 mb-1">Galones:</div>
+                                        <div class="text-xl font-bold text-orange-100 font-mono" x-text="totalGalonesRegular.toFixed(3)">0.000</div>
+                                        <div class="text-xs text-orange-200/70 mt-2">Venta:</div>
+                                        <div class="text-lg font-bold text-orange-100 font-mono">Q<span x-text="totalVentaRegular.toFixed(2)">0.00</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- Total Galones Diesel -->
+                                <div class="bg-blue-500/20 border-2 border-blue-400/50 rounded-xl p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="text-sm font-bold text-blue-200 flex items-center">
+                                            <span class="mr-2">🔵</span>
+                                            Diésel
+                                        </h4>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-xs text-blue-200/70 mb-1">Galones:</div>
+                                        <div class="text-xl font-bold text-blue-100 font-mono" x-text="totalGalonesDiesel.toFixed(3)">0.000</div>
+                                        <div class="text-xs text-blue-200/70 mt-2">Venta:</div>
+                                        <div class="text-lg font-bold text-blue-100 font-mono">Q<span x-text="totalVentaDiesel.toFixed(2)">0.00</span></div>
+                                    </div>
+                                </div>
+
+                                <!-- Total CC -->
+                                <div class="bg-purple-500/20 border-2 border-purple-400/50 rounded-xl p-4">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="text-sm font-bold text-purple-200 flex items-center">
+                                            <span class="mr-2">🟣</span>
+                                            CC Total
+                                        </h4>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-xs text-purple-200/70 mb-1">Unidades:</div>
+                                        <div class="text-xl font-bold text-purple-100 font-mono" x-text="totalCC.toFixed(3)">0.000</div>
+                                        <div class="text-xs text-purple-200/70 mt-2">-</div>
+                                        <div class="text-lg font-bold text-purple-100/50">-</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Resumen General -->
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <!-- Total Galones -->
+                                <div class="bg-cyan-600/20 border-2 border-cyan-400/50 rounded-xl p-4">
+                                    <h5 class="text-sm font-bold text-cyan-200 text-center mb-2">💧 Total Galones</h5>
+                                    <div class="text-3xl font-extrabold text-cyan-100 text-center font-mono" x-text="totalGalones.toFixed(3)">0.000</div>
+                                    <div class="text-xs text-cyan-200/70 text-center mt-1">Todos los combustibles</div>
+                                </div>
+
+                                <!-- Total Ventas -->
+                                <div class="bg-green-600/20 border-2 border-green-400/50 rounded-xl p-4">
+                                    <h5 class="text-sm font-bold text-green-200 text-center mb-2">💰 Total Ventas</h5>
+                                    <div class="text-3xl font-extrabold text-green-100 text-center font-mono">Q<span x-text="totalVentas.toFixed(2)">0.00</span></div>
+                                    <div class="text-xs text-green-200/70 text-center mt-1">Galones × Precio</div>
+                                </div>
+
+                                <!-- Diferencia -->
+                                <div class="bg-yellow-600/20 border-2 border-yellow-400/50 rounded-xl p-4">
+                                    <h5 class="text-sm font-bold text-yellow-200 text-center mb-2">📈 Diferencia</h5>
+                                    <div class="text-3xl font-extrabold text-center font-mono"
+                                         :class="diferencia >= 0 ? 'text-green-200' : 'text-red-300'">
+                                        Q<span x-text="Math.abs(diferencia).toFixed(2)">0.00</span>
+                                    </div>
+                                    <div class="text-xs text-center mt-1"
+                                         :class="diferencia >= 0 ? 'text-green-300' : 'text-red-300'">
+                                        <span x-show="diferencia >= 0">✅ Ventas ≥ CC</span>
+                                        <span x-show="diferencia < 0">⚠️ Ventas < CC</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-white/60 text-center mt-4">
+                                ℹ️ Estos valores se calculan automáticamente en base a las lecturas ingresadas en tiempo real
+                            </p>
+                        </div>
+                    @endif
 
                     <!-- Sección de Totales de Ventas -->
                     <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 mb-8">
@@ -624,6 +889,115 @@
                     const descuentos = parseFloat(document.querySelector('input[name="venta_descuentos"]')?.value) || 0;
 
                     this.totalVentas = credito + tarjetas + efectivo - descuentos;
+                }
+            }
+        }
+
+        function resumenTotales(bombas) {
+            return {
+                bombas: bombas,
+                totalGalonesSuper: 0,
+                totalGalonesRegular: 0,
+                totalGalonesDiesel: 0,
+                totalCC: 0,
+                totalVentaSuper: 0,
+                totalVentaRegular: 0,
+                totalVentaDiesel: 0,
+                totalGalones: 0,
+                totalVentas: 0,
+                diferencia: 0,
+
+                init() {
+                    console.log('resumenTotales init con bombas:', this.bombas);
+                    this.calcularTotales();
+
+                    // Escuchar eventos de actualización de lecturas
+                    window.addEventListener('lectura-actualizada', () => {
+                        console.log('Evento lectura-actualizada recibido');
+                        this.calcularTotales();
+                    });
+
+                    // Polling para actualizar cada segundo (backup por si no se disparan eventos)
+                    setInterval(() => {
+                        this.calcularTotales();
+                    }, 1000);
+                },
+
+                calcularTotales() {
+                    this.totalGalonesSuper = 0;
+                    this.totalGalonesRegular = 0;
+                    this.totalGalonesDiesel = 0;
+                    this.totalCC = 0;
+                    this.totalVentaSuper = 0;
+                    this.totalVentaRegular = 0;
+                    this.totalVentaDiesel = 0;
+
+                    // Iterar sobre todas las bombas
+                    Object.keys(this.bombas).forEach(nombreBomba => {
+                        const bomba = this.bombas[nombreBomba];
+
+                        // Super
+                        if (bomba.combustibles && bomba.combustibles.Super) {
+                            const inputSuper = document.querySelector(`input[name="lectura_${bomba.id}_super"]`);
+                            if (inputSuper && inputSuper.value) {
+                                const lecturaAnterior = parseFloat(bomba.combustibles.Super.lectura_actual) || 0;
+                                const lecturaNueva = parseFloat(inputSuper.value) || 0;
+                                const galones = lecturaNueva > lecturaAnterior ? lecturaNueva - lecturaAnterior : 0;
+                                const precio = parseFloat(bomba.combustibles.Super.precio) || 0;
+
+                                this.totalGalonesSuper += galones;
+                                this.totalVentaSuper += galones * precio;
+                            }
+                        }
+
+                        // Regular
+                        if (bomba.combustibles && bomba.combustibles.Regular) {
+                            const inputRegular = document.querySelector(`input[name="lectura_${bomba.id}_regular"]`);
+                            if (inputRegular && inputRegular.value) {
+                                const lecturaAnterior = parseFloat(bomba.combustibles.Regular.lectura_actual) || 0;
+                                const lecturaNueva = parseFloat(inputRegular.value) || 0;
+                                const galones = lecturaNueva > lecturaAnterior ? lecturaNueva - lecturaAnterior : 0;
+                                const precio = parseFloat(bomba.combustibles.Regular.precio) || 0;
+
+                                this.totalGalonesRegular += galones;
+                                this.totalVentaRegular += galones * precio;
+                            }
+                        }
+
+                        // Diesel
+                        if (bomba.combustibles && bomba.combustibles.Diesel) {
+                            const inputDiesel = document.querySelector(`input[name="lectura_${bomba.id}_diesel"]`);
+                            if (inputDiesel && inputDiesel.value) {
+                                const lecturaAnterior = parseFloat(bomba.combustibles.Diesel.lectura_actual) || 0;
+                                const lecturaNueva = parseFloat(inputDiesel.value) || 0;
+                                const galones = lecturaNueva > lecturaAnterior ? lecturaNueva - lecturaAnterior : 0;
+                                const precio = parseFloat(bomba.combustibles.Diesel.precio) || 0;
+
+                                this.totalGalonesDiesel += galones;
+                                this.totalVentaDiesel += galones * precio;
+                            }
+                        }
+
+                        // CC
+                        if (bomba.combustibles && bomba.combustibles.CC) {
+                            const inputCC = document.querySelector(`input[name="lectura_${bomba.id}_cc"]`);
+                            if (inputCC && inputCC.value) {
+                                const lecturaAnterior = parseFloat(bomba.combustibles.CC.lectura_actual) || 0;
+                                const lecturaNueva = parseFloat(inputCC.value) || 0;
+                                const unidades = lecturaNueva > lecturaAnterior ? lecturaNueva - lecturaAnterior : 0;
+
+                                this.totalCC += unidades;
+                            }
+                        }
+                    });
+
+                    // Calcular totales generales
+                    this.totalGalones = this.totalGalonesSuper + this.totalGalonesRegular + this.totalGalonesDiesel;
+                    this.totalVentas = this.totalVentaSuper + this.totalVentaRegular + this.totalVentaDiesel;
+
+                    // Calcular diferencia (Ventas - CC)
+                    // Nota: Asumimos que CC representa el total de ventas en efectivo/conteo
+                    this.diferencia = this.totalVentas - this.totalCC;
                 }
             }
         }
