@@ -103,7 +103,7 @@
         }
     </style>
 </head>
-<body class="bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 text-white h-screen w-full overflow-x-hidden" 
+<body class="bg-gray-900 text-white h-screen w-full overflow-x-hidden"
       x-data="panelTurnos()" x-init="init()">
     
     <!-- Notificaciones -->
@@ -260,7 +260,8 @@
                                                         <span class="text-xs font-bold bg-white/10 px-2 py-1 rounded-full">Q{{ number_format($combustible['precio'], 2) }}</span>
                                                     </div>
 
-                                                    <div class="grid grid-cols-1 md:grid-cols-4 gap-2 mb-3">
+                                                    <!-- Fila 1: Lecturas -->
+                                                    <div class="grid grid-cols-2 gap-2 mb-2">
                                                         <!-- Lectura Anterior -->
                                                         <div>
                                                             <label class="block text-xs font-medium text-white/70 mb-1">Lectura Anterior:</label>
@@ -282,7 +283,10 @@
                                                                    class="w-full px-3 py-2 bg-white border-2 border-orange-400/70 text-black placeholder-gray-400 focus:ring-orange-400/50 focus:border-orange-300 hover:bg-orange-50 rounded-lg font-bold focus:outline-none focus:ring-2 font-mono text-sm text-center transition-all duration-200"
                                                                    placeholder="{{ number_format($combustible['lectura_actual'] + 1, 3) }}">
                                                         </div>
+                                                    </div>
 
+                                                    <!-- Fila 2: Galones y Ventas -->
+                                                    <div class="grid grid-cols-2 gap-2 mb-3">
                                                         <!-- Galones Consumidos -->
                                                         <div x-data="{
                                                             lecturaAnterior: {{ $combustible['lectura_actual'] }},
@@ -618,88 +622,84 @@
                                 Resumen de Totales
                             </h3>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <!-- Fila 1: Totales por Combustible -->
+                            <div class="grid grid-cols-4 gap-2 mb-4">
                                 <!-- Total Galones Super -->
-                                <div class="bg-red-500/20 border-2 border-red-400/50 rounded-xl p-4">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <h4 class="text-sm font-bold text-red-200 flex items-center">
-                                            <span class="mr-2">🔴</span>
+                                <div class="bg-red-500/20 border-2 border-red-400/50 rounded-xl p-3">
+                                    <div class="text-center">
+                                        <h4 class="text-xs font-bold text-red-200 mb-1">
+                                            <span class="block text-lg">🔴</span>
                                             Súper
                                         </h4>
-                                    </div>
-                                    <div class="text-center">
-                                        <div class="text-xs text-red-200/70 mb-1">Galones:</div>
-                                        <div class="text-xl font-bold text-red-100 font-mono" x-text="totalGalonesSuper.toFixed(3)">0.000</div>
-                                        <div class="text-xs text-red-200/70 mt-2">Venta:</div>
-                                        <div class="text-lg font-bold text-red-100 font-mono">Q<span x-text="totalVentaSuper.toFixed(2)">0.00</span></div>
+                                        <div class="text-xs text-red-200/70 mb-1">Gal:</div>
+                                        <div class="text-sm font-bold text-red-100 font-mono" x-text="totalGalonesSuper.toFixed(3)">0.000</div>
+                                        <div class="text-xs text-red-200/70 mt-1">Venta:</div>
+                                        <div class="text-sm font-bold text-red-100 font-mono">Q<span x-text="totalVentaSuper.toFixed(2)">0.00</span></div>
                                     </div>
                                 </div>
 
                                 <!-- Total Galones Regular -->
-                                <div class="bg-orange-500/20 border-2 border-orange-400/50 rounded-xl p-4">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <h4 class="text-sm font-bold text-orange-200 flex items-center">
-                                            <span class="mr-2">🟡</span>
+                                <div class="bg-orange-500/20 border-2 border-orange-400/50 rounded-xl p-3">
+                                    <div class="text-center">
+                                        <h4 class="text-xs font-bold text-orange-200 mb-1">
+                                            <span class="block text-lg">🟡</span>
                                             Regular
                                         </h4>
-                                    </div>
-                                    <div class="text-center">
-                                        <div class="text-xs text-orange-200/70 mb-1">Galones:</div>
-                                        <div class="text-xl font-bold text-orange-100 font-mono" x-text="totalGalonesRegular.toFixed(3)">0.000</div>
-                                        <div class="text-xs text-orange-200/70 mt-2">Venta:</div>
-                                        <div class="text-lg font-bold text-orange-100 font-mono">Q<span x-text="totalVentaRegular.toFixed(2)">0.00</span></div>
+                                        <div class="text-xs text-orange-200/70 mb-1">Gal:</div>
+                                        <div class="text-sm font-bold text-orange-100 font-mono" x-text="totalGalonesRegular.toFixed(3)">0.000</div>
+                                        <div class="text-xs text-orange-200/70 mt-1">Venta:</div>
+                                        <div class="text-sm font-bold text-orange-100 font-mono">Q<span x-text="totalVentaRegular.toFixed(2)">0.00</span></div>
                                     </div>
                                 </div>
 
                                 <!-- Total Galones Diesel -->
-                                <div class="bg-blue-500/20 border-2 border-blue-400/50 rounded-xl p-4">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <h4 class="text-sm font-bold text-blue-200 flex items-center">
-                                            <span class="mr-2">🔵</span>
+                                <div class="bg-blue-500/20 border-2 border-blue-400/50 rounded-xl p-3">
+                                    <div class="text-center">
+                                        <h4 class="text-xs font-bold text-blue-200 mb-1">
+                                            <span class="block text-lg">🔵</span>
                                             Diésel
                                         </h4>
-                                    </div>
-                                    <div class="text-center">
-                                        <div class="text-xs text-blue-200/70 mb-1">Galones:</div>
-                                        <div class="text-xl font-bold text-blue-100 font-mono" x-text="totalGalonesDiesel.toFixed(3)">0.000</div>
-                                        <div class="text-xs text-blue-200/70 mt-2">Venta:</div>
-                                        <div class="text-lg font-bold text-blue-100 font-mono">Q<span x-text="totalVentaDiesel.toFixed(2)">0.00</span></div>
+                                        <div class="text-xs text-blue-200/70 mb-1">Gal:</div>
+                                        <div class="text-sm font-bold text-blue-100 font-mono" x-text="totalGalonesDiesel.toFixed(3)">0.000</div>
+                                        <div class="text-xs text-blue-200/70 mt-1">Venta:</div>
+                                        <div class="text-sm font-bold text-blue-100 font-mono">Q<span x-text="totalVentaDiesel.toFixed(2)">0.00</span></div>
                                     </div>
                                 </div>
 
                                 <!-- Total CC -->
-                                <div class="bg-purple-500/20 border-2 border-purple-400/50 rounded-xl p-4">
-                                    <div class="flex items-center justify-between mb-2">
-                                        <h4 class="text-sm font-bold text-purple-200 flex items-center">
-                                            <span class="mr-2">🟣</span>
+                                <div class="bg-purple-500/20 border-2 border-purple-400/50 rounded-xl p-3">
+                                    <div class="text-center">
+                                        <h4 class="text-xs font-bold text-purple-200 mb-1">
+                                            <span class="block text-lg">🟣</span>
                                             CC Total
                                         </h4>
-                                    </div>
-                                    <div class="text-center">
-                                        <div class="text-xs text-purple-200/70 mb-1">Unidades:</div>
-                                        <div class="text-xl font-bold text-purple-100 font-mono" x-text="totalCC.toFixed(3)">0.000</div>
-                                        <div class="text-xs text-purple-200/70 mt-2">-</div>
-                                        <div class="text-lg font-bold text-purple-100/50">-</div>
+                                        <div class="text-xs text-purple-200/70 mb-1">Unid:</div>
+                                        <div class="text-sm font-bold text-purple-100 font-mono" x-text="totalCC.toFixed(3)">0.000</div>
+                                        <div class="text-xs text-purple-200/70 mt-1">-</div>
+                                        <div class="text-sm font-bold text-purple-100/50">-</div>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Resumen General -->
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <!-- Fila 2: Total Galones y Total Ventas -->
+                            <div class="grid grid-cols-2 gap-2 mb-4">
                                 <!-- Total Galones -->
                                 <div class="bg-cyan-600/20 border-2 border-cyan-400/50 rounded-xl p-4">
                                     <h5 class="text-sm font-bold text-cyan-200 text-center mb-2">💧 Total Galones</h5>
-                                    <div class="text-3xl font-extrabold text-cyan-100 text-center font-mono" x-text="totalGalones.toFixed(3)">0.000</div>
+                                    <div class="text-2xl font-extrabold text-cyan-100 text-center font-mono" x-text="totalGalones.toFixed(3)">0.000</div>
                                     <div class="text-xs text-cyan-200/70 text-center mt-1">Todos los combustibles</div>
                                 </div>
 
                                 <!-- Total Ventas -->
                                 <div class="bg-green-600/20 border-2 border-green-400/50 rounded-xl p-4">
                                     <h5 class="text-sm font-bold text-green-200 text-center mb-2">💰 Total Ventas</h5>
-                                    <div class="text-3xl font-extrabold text-green-100 text-center font-mono">Q<span x-text="totalVentas.toFixed(2)">0.00</span></div>
+                                    <div class="text-2xl font-extrabold text-green-100 text-center font-mono">Q<span x-text="totalVentas.toFixed(2)">0.00</span></div>
                                     <div class="text-xs text-green-200/70 text-center mt-1">Galones × Precio</div>
                                 </div>
+                            </div>
 
+                            <!-- Fila 3: Diferencia -->
+                            <div class="grid grid-cols-1 gap-2">
                                 <!-- Diferencia -->
                                 <div class="bg-yellow-600/20 border-2 border-yellow-400/50 rounded-xl p-4">
                                     <h5 class="text-sm font-bold text-yellow-200 text-center mb-2">📈 Diferencia</h5>
@@ -721,11 +721,11 @@
                         </div>
                     @endif
 
-                    <!-- Sección de Totales de Ventas -->
+                    <!-- Sección de Dinero Recibido -->
                     <div class="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20 mb-8">
                         <h3 class="text-3xl font-bold mb-6 text-center flex items-center justify-center">
                             <div class="w-6 h-6 bg-green-500 rounded-full mr-3"></div>
-                            💰 Totales de Ventas
+                            💰 Dinero Recibido
                         </h3>
 
                         <form action="{{ route('turnos.guardar-ventas') }}" method="POST">
@@ -789,7 +789,7 @@
                             <div class="bg-gradient-to-r from-green-500/30 to-green-600/30 border-3 border-green-400/70 rounded-2xl p-6 mb-6 shadow-2xl">
                                 <div class="text-center">
                                     <h4 class="text-xl font-bold text-green-200 mb-2 flex items-center justify-center">
-                                        💰 TOTAL DE VENTAS
+                                        💰 TOTAL DINERO RECIBIDO
                                     </h4>
                                     <div class="text-4xl font-extrabold text-white font-mono mb-2" x-text="'Q ' + totalVentas.toFixed(2)"></div>
                                     <p class="text-sm text-green-200/80">
@@ -801,7 +801,7 @@
                             <div class="text-center">
                                 <button type="submit"
                                         class="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white px-8 py-4 rounded-xl text-lg font-bold transition-all duration-200 transform hover:scale-105 shadow-xl">
-                                    💾 Guardar Totales de Ventas
+                                    💾 Guardar Dinero Recibido
                                 </button>
                             </div>
                         </form>
