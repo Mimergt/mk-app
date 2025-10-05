@@ -260,10 +260,10 @@
                                                         <span class="text-xs font-bold bg-white/10 px-2 py-1 rounded-full">Q{{ number_format($combustible['precio'], 2) }}</span>
                                                     </div>
 
-                                                    <!-- Fila 1: Lecturas -->
-                                                    <div class="grid grid-cols-2 gap-2 mb-2">
+                                                    <!-- Lecturas -->
+                                                    <div class="mb-2">
                                                         <!-- Lectura Anterior -->
-                                                        <div>
+                                                        <div class="mb-2">
                                                             <label class="block text-xs font-medium text-white/70 mb-1">Lectura Anterior:</label>
                                                             <div class="bg-gray-700/50 rounded-lg p-2 text-center">
                                                                 <span class="text-xs font-mono font-bold">{{ number_format($combustible['lectura_actual'], 3) }}</span>
