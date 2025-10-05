@@ -32,6 +32,11 @@ class GestionBombas extends Page implements HasForms
     public $ventasHoy = 0; // Ventas del día actual
     public $mensajeExito = false; // Para mostrar mensajes de éxito
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasAnyRole(['admin', 'supervisor']);
+    }
+
     public function mount()
     {
         $this->gasolineras = Gasolinera::select('id', 'nombre', 'ubicacion')->get()->toArray();

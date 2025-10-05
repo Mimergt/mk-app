@@ -42,6 +42,11 @@ class GastosCostos extends Page implements Forms\Contracts\HasForms, Tables\Cont
     protected static ?int $navigationSort = 99;
 
     protected static string $view = 'filament.pages.gastos-costos';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
     
     protected static ?string $slug = 'finanzas-legacy';
 

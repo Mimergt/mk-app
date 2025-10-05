@@ -18,6 +18,11 @@ class Tabla extends Page
 
     protected static string $view = 'filament.pages.analisis.tabla';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
+
     protected static ?string $slug = 'analisis/tabla';
 
     protected static bool $shouldRegisterNavigation = false; // Desactivada según requerimiento

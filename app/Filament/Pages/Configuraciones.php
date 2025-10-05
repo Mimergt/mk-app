@@ -27,6 +27,11 @@ class Configuraciones extends Page
 
     public $archivoBackup;
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
+
     public function generarBackup()
     {
         try {

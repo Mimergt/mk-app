@@ -51,6 +51,7 @@ class UserResource extends Resource
                 Forms\Components\Select::make('tipo_usuario')
                     ->options([
                         'admin' => 'Administrador',
+                        'supervisor' => 'Supervisor',
                         'operador' => 'Operador'
                     ])
                     ->default('operador')
@@ -75,6 +76,7 @@ class UserResource extends Resource
                 Tables\Columns\BadgeColumn::make('tipo_usuario')
                     ->colors([
                         'danger' => 'admin',
+                        'warning' => 'supervisor',
                         'success' => 'operador',
                     ])
                     ->label('Tipo'),
@@ -91,6 +93,7 @@ class UserResource extends Resource
                 Tables\Filters\SelectFilter::make('tipo_usuario')
                     ->options([
                         'admin' => 'Administrador',
+                        'supervisor' => 'Supervisor',
                         'operador' => 'Operador'
                     ])
                     ->label('Tipo'),
@@ -119,5 +122,10 @@ class UserResource extends Resource
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
+    }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasRole('admin');
     }
 }

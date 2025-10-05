@@ -20,6 +20,11 @@ class Detalles extends Page
 
     protected static string $view = 'filament.pages.analisis.detalles';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
+
     protected static ?string $slug = 'analisis/detalles';
 
     public function getMetabaseUrl(): string

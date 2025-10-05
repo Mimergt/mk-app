@@ -15,13 +15,15 @@ class UsersSeeder extends Seeder
     {
         // Crear roles
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
+        $supervisorRole = Role::firstOrCreate(['name' => 'supervisor']);
         $operadorRole = Role::firstOrCreate(['name' => 'operador']);
 
         // Crear permisos
         $permissions = [
             'gestionar usuarios',
-            'gestionar gasolineras', 
+            'gestionar gasolineras',
             'gestionar bombas',
+            'ver turnos',
             'ver panel turnos',
             'abrir cerrar turnos',
             'actualizar lecturas'
@@ -33,6 +35,7 @@ class UsersSeeder extends Seeder
 
         // Asignar permisos a roles
         $adminRole->givePermissionTo($permissions);
+        $supervisorRole->givePermissionTo(['gestionar gasolineras', 'gestionar bombas', 'ver turnos']);
         $operadorRole->givePermissionTo(['ver panel turnos', 'abrir cerrar turnos', 'actualizar lecturas']);
 
         // Crear gasolineras de prueba
@@ -77,8 +80,19 @@ class UsersSeeder extends Seeder
         ]);
         $operador2->assignRole($operadorRole);
 
+        // Crear supervisor
+        $supervisor = User::firstOrCreate([
+            'email' => 'supervisor@gasolinera.com'
+        ], [
+            'name' => 'Carlos Supervisor',
+            'password' => Hash::make('password'),
+            'tipo_usuario' => 'supervisor'
+        ]);
+        $supervisor->assignRole($supervisorRole);
+
         echo "✅ Usuarios creados:\n";
         echo "👤 Admin: admin@gasolinera.com / password\n";
+        echo "👤 Supervisor: supervisor@gasolinera.com / password\n";
         echo "👤 Operador 1: operador1@gasolinera.com / password (Gasolinera Central)\n";
         echo "👤 Operador 2: operador2@gasolinera.com / password (Gasolinera Norte)\n";
     }

@@ -20,6 +20,11 @@ class Resumen extends Page
 
     protected static string $view = 'filament.pages.analisis.resumen';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
+
     protected static ?string $slug = 'analisis/resumen';
 
     public function getMetabaseUrl(): string

@@ -41,6 +41,11 @@ class Gastos extends Page implements Forms\Contracts\HasForms, Tables\Contracts\
     protected static ?int $navigationSort = 31;
 
     protected static string $view = 'filament.pages.gastos';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
     
     protected static ?string $slug = 'gastos';
 

@@ -138,4 +138,9 @@ class GasolineraResource extends Resource
             'edit' => Pages\EditGasolinera::route('/{record}/edit'),
         ];
     }
+
+    public static function canViewAny(): bool
+    {
+        return auth()->user()->hasAnyRole(['admin', 'supervisor']);
+    }
 }

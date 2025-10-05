@@ -39,6 +39,11 @@ class Precios extends Page implements Forms\Contracts\HasForms, Tables\Contracts
     protected static ?int $navigationSort = 32;
 
     protected static string $view = 'filament.pages.precios';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()->hasRole('admin');
+    }
     
     protected static ?string $slug = 'precios';
 
