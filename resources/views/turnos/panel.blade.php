@@ -806,8 +806,6 @@
                             </div>
                         </form>
                     </div>
-
-                @endif
             </div>
         @else
             <!-- Estado: Sin Turno Activo -->
