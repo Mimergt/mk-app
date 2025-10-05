@@ -108,7 +108,17 @@
     
     <!-- Notificaciones -->
     @if(session('success'))
-        <div class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg">
+        <div class="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg"
+             x-data
+             x-init="
+                setTimeout(() => {
+                    const message = '{{ session('success') }}';
+                    const bombaMatch = message.match(/✅\s*(.+?):/);
+                    if (bombaMatch) {
+                        $dispatch('show-success', { bomba: bombaMatch[1].trim() });
+                    }
+                }, 100);
+             ">
             ✅ {{ session('success') }}
         </div>
     @endif
@@ -124,7 +134,72 @@
             ❌ {{ $errors->first() }}
         </div>
     @endif
-        
+
+    <!-- Overlay de Carga Global -->
+    <div x-data="{
+        show: false,
+        bombaName: '',
+        isSuccess: false,
+        showOverlay(bomba) {
+            this.bombaName = bomba;
+            this.isSuccess = false;
+            this.show = true;
+        },
+        showSuccess(bomba) {
+            this.bombaName = bomba;
+            this.isSuccess = true;
+            this.show = true;
+            setTimeout(() => {
+                this.show = false;
+            }, 2000);
+        },
+        hide() {
+            this.show = false;
+        }
+    }"
+    @show-loading.window="showOverlay($event.detail.bomba)"
+    @show-success.window="showSuccess($event.detail.bomba)">
+
+        <!-- Overlay de fondo -->
+        <div x-show="show"
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="transition ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex items-center justify-center"
+             style="display: none;">
+
+            <!-- Mensaje de Carga -->
+            <div x-show="!isSuccess" class="bg-white rounded-2xl p-8 shadow-2xl max-w-md mx-4 text-center">
+                <div class="mb-6">
+                    <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">Guardando...</h3>
+                <p class="text-gray-600 text-lg">
+                    Estamos guardando la <span class="font-bold text-blue-600" x-text="bombaName"></span>
+                </p>
+                <p class="text-gray-500 text-sm mt-2">Por favor espere...</p>
+            </div>
+
+            <!-- Mensaje de Éxito -->
+            <div x-show="isSuccess" class="bg-white rounded-2xl p-8 shadow-2xl max-w-md mx-4 text-center">
+                <div class="mb-6">
+                    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                        <svg class="w-10 h-10 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">¡Guardado Exitoso!</h3>
+                <p class="text-gray-600 text-lg">
+                    <span class="font-bold text-green-600" x-text="bombaName"></span> guardada correctamente
+                </p>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
     <div class="bg-white/10 backdrop-blur-sm border-b border-white/20 p-2">
         <div class="flex items-center justify-between">
@@ -247,7 +322,8 @@
                                                     $gasolinera = auth()->user()->gasolinera;
                                                 @endphp
                                                 <form action="{{ route('turnos.bomba.guardar-grupo', $nombreBomba) }}" method="POST" enctype="multipart/form-data"
-                                                      class="bg-black/30 rounded-lg p-3 border border-white/20">
+                                                      class="bg-black/30 rounded-lg p-3 border border-white/20"
+                                                      @submit="$dispatch('show-loading', { bomba: '{{ $nombreBomba }} - {{ $tipoCombustible }}' })">
                                                     @csrf
                                                     <input type="hidden" name="tipo_combustible" value="{{ strtolower($tipoCombustible) }}">
                                                     <input type="hidden" name="bomba_id" value="{{ $bombaData['id'] }}">
@@ -464,7 +540,8 @@
                                     @if(isset($bombaData['combustibles']['CC']))
                                         @php $combustibleCC = $bombaData['combustibles']['CC']; @endphp
                                         <form action="{{ route('turnos.bomba.guardar-grupo', $nombreBomba) }}" method="POST" enctype="multipart/form-data"
-                                              class="bg-black/30 rounded-lg p-3 border border-purple-400/30">
+                                              class="bg-black/30 rounded-lg p-3 border border-purple-400/30"
+                                              @submit="$dispatch('show-loading', { bomba: '{{ $nombreBomba }} - CC' })">
                                             @csrf
                                             <input type="hidden" name="tipo_combustible" value="cc">
                                             <input type="hidden" name="bomba_id" value="{{ $bombaData['id'] }}">
